@@ -1,0 +1,100 @@
+{% extends "gestion/base.html" %}
+
+{% block title %}Panel de Aprobación de Vacaciones{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#fdfcf9] py-10 px-4 md:px-10 font-[Inter] text-[#374151]">
+
+    <!-- Título -->
+    <div class="max-w-7xl mx-auto mb-8">
+        <h1 class="text-3xl font-extrabold text-[#166534] border-b-2 border-[#bbf7d0] pb-3">
+            Panel de Aprobación de Solicitudes Pendientes
+        </h1>
+        <p class="text-gray-600 mt-2">
+            Utiliza esta página para revisar y gestionar las solicitudes de vacaciones que esperan tu aprobación.
+        </p>
+    </div>
+
+    {% if messages %}
+        <div class="max-w-7xl mx-auto mb-6 space-y-2">
+            {% for message in messages %}
+                <div class="p-3 rounded-lg text-sm font-medium shadow-sm
+                    {% if message.tags == 'success' %} bg-[#dcfce7] text-[#166534] border border-[#bbf7d0]
+                    {% elif message.tags == 'error' %} bg-[#fee2e2] text-[#991b1b] border border-[#fecaca]
+                    {% elif message.tags == 'warning' %} bg-[#fef9c3] text-[#854d0e] border border-[#fde68a]
+                    {% else %} bg-[#e0f2fe] text-[#075985] border border-[#bae6fd]{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Listado de Solicitudes Pendientes (Necesita la lista 'solicitudes_pendientes' en el contexto) -->
+    <div class="max-w-7xl mx-auto">
+        <h2 class="text-2xl font-bold mb-4 text-[#14532d]">Pendientes de tu Revisión</h2>
+
+        {% if not solicitudes_pendientes %}
+            <div class="bg-white p-6 rounded-xl border border-[#e2e8f0] shadow-sm text-center text-gray-500">
+                <p>🎉 ¡Excelente! No tienes solicitudes pendientes de aprobación en este momento.</p>
+            </div>
+        {% else %}
+            <div class="overflow-x-auto bg-white rounded-xl border border-[#e2e8f0] shadow-sm">
+                <table class="min-w-full divide-y divide-[#e2e8f0] text-sm">
+                    <thead class="bg-[#fef9c3] border-b border-[#fde68a]">
+                        <tr>
+                            <th class="px-6 py-3 text-left font-semibold uppercase text-[#854d0e]">Solicitante</th>
+                            <th class="px-6 py-3 text-left font-semibold uppercase text-[#854d0e]">Período</th>
+                            <th class="px-6 py-3 text-center font-semibold uppercase text-[#854d0e]">Días Naturales</th>
+                            <th class="px-6 py-3 text-left font-semibold uppercase text-[#854d0e]">Razón (Empleado)</th>
+                            <th class="px-6 py-3 text-left font-semibold uppercase text-[#854d0e]">Solicitado el</th>
+                            <th class="px-6 py-3 text-center font-semibold uppercase text-[#854d0e]">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-[#f1f5f9]">
+                        {% for registro in solicitudes_pendientes %}
+                        <tr class="hover:bg-[#fefce8] transition duration-100">
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-[#374151]">
+                                {{ registro.empleado.apellido }}, {{ registro.empleado.nombre }}
+                                <span class="block text-xs text-gray-500">{{ registro.empleado.legajo }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-600">
+                                {{ registro.fecha_inicio|date:"d M Y" }} al {{ registro.fecha_fin|date:"d M Y" }}
+                            </td>
+                            <td class="px-6 py-4 text-center font-bold text-[#14532d]">
+                                {{ registro.dias_solicitados }}
+                            </td>
+                            <td class="px-6 py-4 text-gray-600 max-w-xs truncate" title="{{ registro.razon|default:'Sin razón especificada.' }}">
+                                {{ registro.razon|default:'N/A' }}
+                            </td>
+                            <td class="px-6 py-4 text-gray-600">
+                                {{ registro.fecha_solicitud|date:"d M Y" }}
+                            </td>
+                            <td class="px-3 py-4 text-center whitespace-nowrap">
+                                <form method="POST" action="{% url 'gestion:aprobar_rechazar' solicitud_id=registro.id %}" class="inline-flex space-x-2">
+                                    {% csrf_token %}
+                                    <!-- Botón Aprobar -->
+                                    <button type="submit" name="accion" value="aprobar"
+                                        title="Aprobar Solicitud"
+                                        class="p-2 rounded-full text-white bg-[#10b981] hover:bg-[#059669] transition transform hover:scale-105 shadow-md">
+                                        <!-- Icono de Check -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-check-circle"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+                                    </button>
+                                    <!-- Botón Rechazar -->
+                                    <button type="submit" name="accion" value="rechazar"
+                                        title="Rechazar Solicitud"
+                                        class="p-2 rounded-full text-white bg-[#ef4444] hover:bg-[#dc2626] transition transform hover:scale-105 shadow-md">
+                                        <!-- Icono de X -->
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-x-circle"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

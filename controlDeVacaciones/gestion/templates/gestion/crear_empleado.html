@@ -1,0 +1,159 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        input[type="date"]::-webkit-calendar-picker-indicator { cursor: pointer; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="bg-blue-600 text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold">Control de Vacaciones</h1>
+            {% comment %} <div>
+                <span>Bienvenido, {{ request.user.username }}</span>
+                <a href="{% url 'logout' %}" class="ml-4 text-blue-100 hover:text-white hover:underline">Salir</a>
+            </div> {% endcomment %}
+        </div>
+    </div>
+    
+    <div class="container mx-auto p-6 flex justify-center">
+        <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-4xl">
+            <h2 class="text-3xl font-bold text-center text-gray-800 mb-2">{{ titulo }}</h2>
+            <p class="text-center text-gray-500 mb-8">Complete todos los datos requeridos para el perfil de RRHH.</p>
+
+            <!-- Mensajes de Django -->
+            {% if messages %}
+                <div class="mb-4">
+                    {% for message in messages %}
+                        <div class="p-3 mb-2 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700{% elif message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'warning' %}bg-yellow-100 text-yellow-700{% else %}bg-blue-100 text-blue-700{% endif %}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'gestion:crear_empleado' %}">
+                {% csrf_token %}
+                
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Campo: Usuario del Sistema -->
+                    <div class="md:col-span-2">
+                        <label for="id_usuario" class="block text-sm font-medium text-gray-700">Usuario del Sistema (Login)</label>
+                        <select id="id_usuario" name="usuario" required
+                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm">
+                            <option value="">-- Seleccione un usuario --</option>
+                            {% for user in usuarios_disponibles %}
+                                <option value="{{ user.id }}" {% if post_data.usuario|stringformat:"s" == user.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ user.username }} ({{ user.email|default:"Sin email" }})
+                                </option>
+                            {% empty %}
+                                <option value="" disabled>-- ¡No hay usuarios disponibles! --</option>
+                            {% endfor %}
+                        </select>
+                        <p class="mt-2 text-sm text-yellow-600">
+                            Nota: Solo se muestran los usuarios que aún no tienen un perfil de empleado asociado.
+                        </p>
+                    </div>
+
+                    <!-- Fila 2 -->
+                    <div>
+                        <label for="id_legajo" class="block text-sm font-medium text-gray-700">Legajo</label>
+                        <input type="text" id="id_legajo" name="legajo" required
+                               value="{{ post_data.legajo|default:'' }}"
+                               class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg p-2" placeholder="Ej: 12345">
+                    </div>
+                    <div>
+                        <label for="id_dni" class="block text-sm font-medium text-gray-700">DNI</label>
+                        <input type="text" id="id_dni" name="dni" required
+                               value="{{ post_data.dni|default:'' }}"
+                               class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg p-2" placeholder="Ej: 99999999">
+                    </div>
+
+                    <!-- Fila 3 -->
+                    <div>
+                        <label for="id_nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
+                        <input type="text" id="id_nombre" name="nombre" required
+                               value="{{ post_data.nombre|default:'' }}"
+                               class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg p-2" placeholder="Ej: Juan">
+                    </div>
+                    <div>
+                        <label for="id_apellido" class="block text-sm font-medium text-gray-700">Apellido</label>
+                        <input type="text" id="id_apellido" name="apellido" required
+                               value="{{ post_data.apellido|default:'' }}"
+                               class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg p-2" placeholder="Ej: Pérez">
+                    </div>
+
+                    <!-- Fila 4 -->
+                    <div>
+                        <label for="id_departamento" class="block text-sm font-medium text-gray-700">Departamento</label>
+                        <select id="id_departamento" name="departamento" required
+                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm">
+                            <option value="">Seleccione un departamento</option>
+                            {% for dept in departamentos %}
+                                <option value="{{ dept.id }}" {% if post_data.departamento|stringformat:"s" == dept.id|stringformat:"s" %}selected{% endif %}>{{ dept.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="id_fecha_ingreso" class="block text-sm font-medium text-gray-700">Fecha de Ingreso</label>
+                        <input type="date" id="id_fecha_ingreso" name="fecha_ingreso" required
+                               value="{{ post_data.fecha_ingreso|default:'' }}"
+                               class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg p-2">
+                    </div>
+                    
+                    <!-- Fila 5 -->
+                    <div class="flex items-center">
+                        <input type="checkbox" id="id_es_manager" name="es_manager" 
+                               {% if post_data.es_manager == 'on' %}checked{% endif %}
+                               class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                        <label for="id_es_manager" class="ml-2 block text-sm font-medium text-gray-700">
+                            ¿Es Manager?
+                        </label>
+                    </div>
+                    <div>
+                        <label for="id_jornada_estandar" class="block text-sm font-medium text-gray-700">Jornada Estándar (Horas/día)</label>
+                        <input type="number" id="id_jornada_estandar" name="jornada_estandar" min="1" max="24" step="0.5" value="{{ post_data.jornada_estandar|default:'9' }}" required
+                               class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-lg p-2" placeholder="9">
+                        <p class="mt-1 text-sm text-gray-500">Horas de trabajo por día (default: 9 horas)</p>
+                    </div>
+                    
+                    <!-- Fila 6 (Reporta a) -->
+                    <div class="md:col-span-2">
+                        <label for="id_manager_aprobador" class="block text-sm font-medium text-gray-700">Reporta a (Manager de Aprobación)</label>
+                        <select id="id_manager_aprobador" name="manager_aprobador"
+                                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-lg shadow-sm">
+                            <option value="">Seleccione un Manager (Opcional)...</option>
+                            {% for manager in managers_list %}
+                                <option value="{{ manager.pk }}" {% if post_data.manager_aprobador|stringformat:"s" == manager.pk|stringformat:"s" %}selected{% endif %}>
+                                    {{ manager.apellido }}, {{ manager.nombre }} ({{ manager.legajo }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <p class="mt-2 text-sm text-gray-500">
+                            Quién debe aprobar sus solicitudes de ausencia.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-10 flex justify-end space-x-4">
+                    <a href="{% url 'gestion:gestion_empleados' %}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-6 rounded-lg shadow-md transition duration-200">
+                        Cancelar
+                    </a>
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-lg shadow-lg transition duration-200">
+                        Guardar Empleado
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

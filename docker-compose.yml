@@ -1,0 +1,33 @@
+
+
+services:
+  web:
+    build: .
+    working_dir: /app/controlDeVacaciones
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_NAME=vacacionesAbbamat
+      - DB_USER=root
+      - DB_PASSWORD=rootpassword
+      - DB_PORT=3306
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: vacacionesAbbamat
+      MYSQL_ROOT_PASSWORD: rootpassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:

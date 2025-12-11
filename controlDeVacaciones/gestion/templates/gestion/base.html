@@ -1,0 +1,397 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        // Inherit custom colors if needed, though we use CSS vars mostly now
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Nuestro CSS personalizado -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'css/fixes.css' %}">
+
+    <title>{% block title %}Control de Vacaciones - ABBAMAT{% endblock %}</title>
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
+
+    <!-- Global Loader -->
+    <div id="global-loader">
+        <div class="flex flex-col items-center">
+            <div class="spinner mb-4"></div>
+            <p class="text-blue-600 dark:text-blue-400 font-semibold animate-pulse">Cargando...</p>
+        </div>
+    </div>
+
+    {% if user.is_authenticated %}
+    <!-- Top Navigation Bar -->
+    <nav class="bg-gradient-to-r from-purple-600 via-blue-600 to-blue-700 shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="flex items-center justify-between h-20">
+
+                <!-- Logo and Brand -->
+                <div class="flex items-center gap-8">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+                            <i class="fas fa-umbrella-beach text-blue-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-white font-bold text-xl">ABBAMAT</h1>
+                            <p class="text-blue-100 text-xs">Control de Vacaciones</p>
+                        </div>
+                    </div>
+
+                    <!-- Main Navigation Links -->
+                    <div class="hidden lg:flex items-center gap-2">
+                        <a href="{% url 'gestion:dashboard' %}"
+                            class="flex items-center gap-2 px-4 py-2 rounded-lg text-white hover:bg-white/20 transition {% if request.resolver_match.url_name == 'dashboard' %}bg-white/20{% endif %}">
+                            <i class="fas fa-home"></i>
+                            <span class="font-medium">Dashboard</span>
+                        </a>
+
+                        {% if user.empleado.es_manager %}
+                        <!-- Manager Menu -->
+                        <div class="relative group">
+                            <button
+                                class="flex items-center gap-2 px-4 py-2 rounded-lg text-white hover:bg-white/20 transition">
+                                <i class="fas fa-briefcase"></i>
+                                <span class="font-medium">Gestión</span>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                            <div
+                                class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                <a href="{% url 'gestion:solicitar_vacaciones' %}"
+                                    class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 first:rounded-t-lg">
+                                    <i class="fas fa-calendar-plus text-blue-600"></i>
+                                    <span class="text-gray-700 font-medium">Nueva Solicitud</span>
+                                </a>
+                                <a href="{% url 'gestion:historial_global' %}"
+                                    class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
+                                    <i class="fas fa-list-check text-orange-600"></i>
+                                    <span class="text-gray-700 font-medium">Solicitudes</span>
+                                </a>
+                                <a href="{% url 'gestion:calendario_global' %}"
+                                    class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 last:rounded-b-lg">
+                                    <i class="fas fa-calendar-days text-purple-600"></i>
+                                    <span class="text-gray-700 font-medium">Calendario Global</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="relative group">
+                            <button
+                                class="flex items-center gap-2 px-4 py-2 rounded-lg text-white hover:bg-white/20 transition">
+                                <i class="fas fa-cog"></i>
+                                <span class="font-medium">Administración</span>
+                                <i class="fas fa-chevron-down text-xs"></i>
+                            </button>
+                            <div
+                                class="absolute left-0 mt-2 w-56 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                                <a href="{% url 'gestion:gestion_empleados' %}"
+                                    class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 first:rounded-t-lg">
+                                    <i class="fas fa-users text-green-600"></i>
+                                    <span class="text-gray-700 font-medium">Empleados</span>
+                                </a>
+                                <a href="{% url 'gestion:gestion_saldos' %}"
+                                    class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
+                                    <i class="fas fa-wallet text-yellow-600"></i>
+                                    <span class="text-gray-700 font-medium">Saldos</span>
+                                </a>
+                                <a href="{% url 'gestion:gestion_festivos' %}"
+                                    class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 last:rounded-b-lg">
+                                    <i class="fas fa-calendar-star text-red-600"></i>
+                                    <span class="text-gray-700 font-medium">Días Festivos</span>
+                                </a>
+                            </div>
+                        </div>
+                        {% else %}
+                        <!-- Employee Menu -->
+                        <a href="{% url 'gestion:historial_personal' %}"
+                            class="flex items-center gap-2 px-4 py-2 rounded-lg text-white hover:bg-white/20 transition">
+                            <i class="fas fa-clock-rotate-left"></i>
+                            <span class="font-medium">Mi Historial</span>
+                        </a>
+                        <a href="{% url 'gestion:dias_disponibles' %}"
+                            class="flex items-center gap-2 px-4 py-2 rounded-lg text-white hover:bg-white/20 transition">
+                            <i class="fas fa-calendar-check"></i>
+                            <span class="font-medium">Días Disponibles</span>
+                        </a>
+                        <a href="{% url 'gestion:calendario_global' %}"
+                            class="flex items-center gap-2 px-4 py-2 rounded-lg text-white hover:bg-white/20 transition">
+                            <i class="fas fa-calendar-days"></i>
+                            <span class="font-medium">Calendario</span>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Right Side - User Menu -->
+                <div class="flex items-center gap-4">
+                    <!-- User Info -->
+                    <div class="hidden md:flex items-center gap-3">
+                        <div class="text-right">
+                            <p class="text-white font-semibold text-sm">{{ user.first_name|default:user.username }}</p>
+                            <p class="text-blue-100 text-xs">
+                                {% if user.empleado.es_manager %}Manager{% else %}Empleado{% endif %}
+                            </p>
+                        </div>
+                        <div
+                            class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-white font-bold shadow-lg">
+                            {{ user.first_name|first|default:user.username|first|upper }}
+                        </div>
+                    </div>
+
+                    <!-- Dark Mode Toggle -->
+                    <button id="theme-toggle"
+                        class="p-2 rounded-lg text-white hover:bg-white/20 transition focus:outline-none"
+                        title="Cambiar tema">
+                        <i id="theme-toggle-dark-icon" class="fas fa-moon hidden"></i>
+                        <i id="theme-toggle-light-icon" class="fas fa-sun hidden"></i>
+                    </button>
+
+                    <!-- User Dropdown -->
+                    <div class="relative group">
+                        <button class="p-2 rounded-lg text-white hover:bg-white/20 transition">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div
+                            class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                            <a href="{% url 'gestion:mi_perfil' %}"
+                                class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 first:rounded-t-lg">
+                                <i class="fas fa-user-circle text-gray-600"></i>
+                                <span class="text-gray-700 font-medium">Mi Perfil</span>
+                            </a>
+                            {% if user.empleado.es_manager %}
+                            <a href="/admin/" class="flex items-center gap-3 px-4 py-3 hover:bg-gray-50">
+                                <i class="fas fa-cog text-gray-600"></i>
+                                <span class="text-gray-700 font-medium">Admin Panel</span>
+                            </a>
+                            {% endif %}
+                            <!-- Logout Form for Django 5.0+ Compliance (POST required) -->
+                            <form action="{% url 'logout' %}" method="post" class="block w-full">
+                                {% csrf_token %}
+                                <button type="submit" class="flex w-full items-center gap-3 px-4 py-3 hover:bg-red-50 last:rounded-b-lg text-left">
+                                    <i class="fas fa-right-from-bracket text-red-600"></i>
+                                    <span class="text-red-700 font-medium">Cerrar Sesión</span>
+                                </button>
+                            </form>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-btn"
+                        class="lg:hidden p-2 rounded-lg text-white hover:bg-white/20 transition">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-blue-700 border-t border-blue-600">
+            <div class="px-4 py-4 space-y-2">
+                <a href="{% url 'gestion:dashboard' %}"
+                    class="block px-4 py-3 rounded-lg text-white hover:bg-white/20 transition">
+                    <i class="fas fa-home mr-2"></i> Dashboard
+                </a>
+                {% if user.empleado.es_manager %}
+                <a href="{% url 'gestion:solicitar_vacaciones' %}"
+                    class="block px-4 py-3 rounded-lg text-white hover:bg-white/20 transition">
+                    <i class="fas fa-calendar-plus mr-2"></i> Nueva Solicitud
+                </a>
+                <a href="{% url 'gestion:historial_global' %}"
+                    class="block px-4 py-3 rounded-lg text-white hover:bg-white/20 transition">
+                    <i class="fas fa-list-check mr-2"></i> Solicitudes
+                </a>
+                <a href="{% url 'gestion:calendario_global' %}"
+                    class="block px-4 py-3 rounded-lg text-white hover:bg-white/20 transition">
+                    <i class="fas fa-calendar-days mr-2"></i> Calendario
+                </a>
+                <a href="{% url 'gestion:gestion_empleados' %}"
+                    class="block px-4 py-3 rounded-lg text-white hover:bg-white/20 transition">
+                    <i class="fas fa-users mr-2"></i> Empleados
+                </a>
+                <a href="{% url 'gestion:gestion_saldos' %}"
+                    class="block px-4 py-3 rounded-lg text-white hover:bg-white/20 transition">
+                    <i class="fas fa-wallet mr-2"></i> Saldos
+                </a>
+                <a href="{% url 'gestion:gestion_festivos' %}"
+                    class="block px-4 py-3 rounded-lg text-white hover:bg-white/20 transition">
+                    <i class="fas fa-calendar-star mr-2"></i> Festivos
+                </a>
+                {% else %}
+                <a href="{% url 'gestion:historial_personal' %}"
+                    class="block px-4 py-3 rounded-lg text-white hover:bg-white/20 transition">
+                    <i class="fas fa-clock-rotate-left mr-2"></i> Mi Historial
+                </a>
+                <a href="{% url 'gestion:dias_disponibles' %}"
+                    class="block px-4 py-3 rounded-lg text-white hover:bg-white/20 transition">
+                    <i class="fas fa-calendar-check mr-2"></i> Días Disponibles
+                </a>
+                <a href="{% url 'gestion:calendario_global' %}"
+                    class="block px-4 py-3 rounded-lg text-white hover:bg-white/20 transition">
+                    <i class="fas fa-calendar-days mr-2"></i> Calendario
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <!-- Messages/Alerts -->
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-6 mt-4">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} animate-slide-in-down">
+            <div class="flex items-start gap-3">
+                <i
+                    class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% elif message.tags == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %} text-lg"></i>
+                <div class="flex-1">{{ message }}</div>
+                <button onclick="this.parentElement.parentElement.remove()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Page Content -->
+    <main class="py-8">
+        {% block content %}
+        <!-- El contenido específico de cada página va aquí -->
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <p class="text-sm text-gray-500">
+                © {% now "Y" %} ABBAMAT - Sistema de Gestión de Vacaciones
+            </p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // ==========================================
+        // DARK MODE LOGIC
+        // ==========================================
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const themeToggleDarkIcon = document.getElementById('theme-toggle-dark-icon');
+        const themeToggleLightIcon = document.getElementById('theme-toggle-light-icon');
+
+        // Check local storage or system preference
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            themeToggleLightIcon.classList.remove('hidden');
+        } else {
+            document.documentElement.classList.remove('dark');
+            themeToggleDarkIcon.classList.remove('hidden');
+        }
+
+        themeToggleBtn.addEventListener('click', function() {
+            // Toggle icons
+            themeToggleDarkIcon.classList.toggle('hidden');
+            themeToggleLightIcon.classList.toggle('hidden');
+
+            // If is set in local storage
+            if (localStorage.getItem('color-theme')) {
+                if (localStorage.getItem('color-theme') === 'light') {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('color-theme', 'dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('color-theme', 'light');
+                }
+            } else {
+                // If not set in local storage
+                if (document.documentElement.classList.contains('dark')) {
+                    document.documentElement.classList.remove('dark');
+                    localStorage.setItem('color-theme', 'light');
+                } else {
+                    document.documentElement.classList.add('dark');
+                    localStorage.setItem('color-theme', 'dark');
+                }
+            }
+        });
+
+        // ==========================================
+        // LOADER LOGIC
+        // ==========================================
+        window.addEventListener('load', function () {
+            const loader = document.getElementById('global-loader');
+            loader.classList.add('loader-hidden');
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 300); // Wait for transition
+        });
+
+        // Show loader on navigation (optional, but gives a smoother feel)
+        document.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', function (e) {
+                const target = this.getAttribute('href');
+                // Only show if it's a valid internal link and not a hash/anchor
+                if (target && target.startsWith('/') && !target.startsWith('#')) {
+                    const loader = document.getElementById('global-loader');
+                    loader.style.display = 'flex';
+                    // Small delay to allow display:flex to apply before removing opacity class
+                    requestAnimationFrame(() => {
+                        loader.classList.remove('loader-hidden');
+                    });
+                }
+            });
+        });
+
+
+        // Toggle mobile menu
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
+
+        // Auto-cerrar alertas después de 5 segundos
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+
+    {% block extra_js %}{% endblock %}
+
+</body>
+
+</html>

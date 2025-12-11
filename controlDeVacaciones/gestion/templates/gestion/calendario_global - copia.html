@@ -1,0 +1,365 @@
+{% extends 'gestion/base.html' %}
+{% load calendario_filters %}
+
+{% block title %}Calendario de Vacaciones{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-[95%] mx-auto">
+        
+        <!-- Header Section -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <i class="fas fa-calendar-alt text-blue-600"></i>
+                        Planificación Anual
+                    </h1>
+                    <p class="text-gray-500 mt-2">Gestión visual de vacaciones por equipo y departamento</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-4">
+                    <!-- Year Filter -->
+                    <div class="bg-gray-100 p-1 rounded-lg flex items-center">
+                        {% for anio in "2024,2025,2026,todos"|make_list %}
+                            {% if anio == "todos" %}
+                                <a href="?anio=todos" 
+                                   class="px-4 py-2 rounded-md text-sm font-medium transition-all {% if anio_seleccionado == 'todos' %}bg-white text-gray-900 shadow-sm{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                                    Histórico
+                                </a>
+                            {% else %}
+                                <a href="?anio={{ anio }}" 
+                                   class="px-4 py-2 rounded-md text-sm font-medium transition-all {% if anio_seleccionado == anio %}bg-white text-blue-600 shadow-sm{% else %}text-gray-500 hover:text-gray-700{% endif %}">
+                                    {{ anio }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Export Action -->
+                    <a href="{% url 'gestion:exportar_calendario_excel' %}?anio={{ anio_seleccionado }}"
+                       class="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-all hover:shadow transform hover:-translate-y-0.5">
+                        <i class="fas fa-file-excel"></i>
+                        <span>Exportar</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="mt-6 flex flex-wrap items-center gap-6 pt-4 border-t border-gray-100">
+                <span class="text-sm font-medium text-gray-400 uppercase tracking-wider">Referencias:</span>
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-3 rounded bg-gradient-to-r from-emerald-400 to-teal-500 shadow-sm"></div>
+                    <span class="text-sm text-gray-600 font-medium">Aprobadas</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-3 rounded bg-gradient-to-r from-amber-300 to-orange-400 shadow-sm"></div>
+                    <span class="text-sm text-gray-600 font-medium">Pendientes</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-3 rounded bg-gray-100 border border-gray-200"></div>
+                    <span class="text-sm text-gray-600">Día Laborable</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar Container -->
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden relative">
+            <div class="calendario-wrapper custom-scrollbar">
+                <table class="calendario-vacaciones">
+                    <thead>
+                        <tr class="meses-header">
+                            <th class="empleado-col shadow-md">Empleado</th>
+                            <th class="disponible-col shadow-md">Disp.</th>
+                            <th class="acumuladas-col shadow-md">Acum.</th>
+                            <th class="restan-col shadow-md">Restan</th>
+                            {% for mes in meses_data %}
+                            <th colspan="{{ mes.total_semanas }}" class="mes-header">
+                                {{ mes.nombre }}
+                            </th>
+                            {% endfor %}
+                        </tr>
+
+                        <tr class="semanas-header">
+                            {% for mes in meses_data %}
+                            {% for semana in mes.semanas %}
+                            <th class="semana-header" title="{{ semana.inicio|date:'d/m' }} - {{ semana.fin|date:'d/m' }}">
+                                {{ semana.rango }}
+                            </th>
+                            {% endfor %}
+                            {% endfor %}
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for depto_data in departamentos_data %}
+                        <!-- Department Header -->
+                        <tr class="departamento-header-row">
+                            <td colspan="4" class="departamento-header">
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-building text-white/80"></i>
+                                    <span>{{ depto_data.departamento.nombre|default:"Sin Departamento" }}</span>
+                                </div>
+                            </td>
+                            {% for mes in meses_data %}
+                            {% for semana in mes.semanas %}
+                            <td class="depto-cell"></td>
+                            {% endfor %}
+                            {% endfor %}
+                        </tr>
+
+                        <!-- Employee Rows -->
+                        {% for emp_data in depto_data.empleados %}
+                        <tr class="empleado-row hover:bg-blue-50/30 transition-colors">
+                            <td class="empleado-nombre">
+                                <div class="flex items-center justify-between w-full px-2">
+                                    <div class="truncate max-w-[120px] font-semibold text-gray-700" title="{{ emp_data.empleado.apellido }}, {{ emp_data.empleado.nombre }}">
+                                        {{ emp_data.empleado.apellido }}, {{ emp_data.empleado.nombre|first }}.
+                                    </div>
+                                    
+                                    {% if emp_data.vacaciones_futuras %}
+                                        <!-- PDF Action -->
+                                        {% if emp_data.vacaciones_futuras|length == 1 %}
+                                            <a href="{% url 'gestion:exportar_notificacion_pdf' emp_data.empleado.id emp_data.vacaciones_futuras.0.id %}" 
+                                               class="text-red-500 hover:text-red-700 transition-colors p-1" 
+                                               title="PDF: {{ emp_data.vacaciones_futuras.0.fecha_inicio|date:'d/m' }}">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </a>
+                                        {% else %}
+                                            <div class="relative group inline-block">
+                                                <button class="text-red-500 hover:text-red-700 transition-colors p-1"><i class="fas fa-file-pdf"></i></button>
+                                                <!-- Custom CSS Dropdown to avoid JS dependency issues -->
+                                                <div class="absolute left-full top-0 ml-1 hidden group-hover:block bg-white shadow-xl rounded-lg p-2 z-[100] min-w-[180px] border border-gray-100">
+                                                    <p class="text-xs font-bold text-gray-400 mb-2 px-2 uppercase">Seleccionar:</p>
+                                                    {% for vac in emp_data.vacaciones_futuras %}
+                                                    <a href="{% url 'gestion:exportar_notificacion_pdf' emp_data.empleado.id vac.id %}" 
+                                                       class="block px-3 py-2 text-xs text-gray-600 hover:bg-red-50 hover:text-red-600 rounded mb-1 whitespace-nowrap">
+                                                        {{ vac.fecha_inicio|date:"d/m" }} - {{ vac.fecha_fin|date:"d/m" }}
+                                                    </a>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <td class="kpi-cell bg-amber-50 text-amber-700">{{ emp_data.dias_disponibles }}</td>
+                            <td class="kpi-cell bg-green-50 text-green-700">{{ emp_data.dias_acumulados }}</td>
+                            <td class="kpi-cell bg-blue-50 text-blue-700 font-bold border-r-2 border-r-blue-200">{{ emp_data.dias_restantes }}</td>
+
+                            {% for mes in meses_data %}
+                            {% for semana in mes.semanas %}
+                                {% with estado=semana.dias|estado_vacacion_semana:emp_data.vacaciones %}
+                                    {% if estado == 'aprobada' %}
+                                        <td class="semana-cell vacacion-aprobada relative group">
+                                            <div class="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded whitespace-nowrap z-50">
+                                                Aprobada
+                                            </div>
+                                        </td>
+                                    {% elif estado == 'pendiente' %}
+                                        <td class="semana-cell vacacion-pendiente relative group">
+                                            <div class="hidden group-hover:block absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-gray-900 text-white text-[10px] rounded whitespace-nowrap z-50">
+                                                Pendiente
+                                            </div>
+                                        </td>
+                                    {% else %}
+                                        <td class="semana-cell"></td>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endfor %}
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                        
+                        {% empty %}
+                        <tr>
+                            <td colspan="100" class="p-12 text-center text-gray-400 bg-gray-50">
+                                <div class="flex flex-col items-center">
+                                    <i class="fas fa-calendar-times text-4xl mb-3 opactiy-50"></i>
+                                    <p class="text-lg font-medium">No hay datos para mostrar</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* --- Modern Scrollbar --- */
+    .custom-scrollbar::-webkit-scrollbar {
+        height: 12px;
+        width: 12px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 6px;
+        border: 3px solid #f1f5f9;
+        min-height: 40px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* --- Calendar Structure --- */
+    .calendario-wrapper {
+        overflow: auto;
+        height: calc(100vh - 250px); /* Fixed height to force scroll */
+        width: 100%;
+        position: relative;
+        background: white;
+    }
+
+    .calendario-vacaciones {
+        border-collapse: separate; /* CRITICAL for sticky */
+        border-spacing: 0;
+        table-layout: fixed;
+        width: max-content;
+    }
+
+    /* --- Common Cell Styles --- */
+    .calendario-vacaciones th,
+    .calendario-vacaciones td {
+        border-right: 1px solid #e2e8f0;
+        border-bottom: 1px solid #e2e8f0;
+        background-clip: padding-box; /* Fixes border disappearance */
+    }
+
+    /* --- Sticky HEADERS (Top) --- */
+    .calendario-vacaciones thead th {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+    }
+
+    /* Row 1: Months */
+    .meses-header th {
+        height: 40px;
+        @apply bg-slate-800 text-white font-bold uppercase tracking-widest text-[10px];
+        border-bottom: 1px solid #475569;
+    }
+
+    /* Row 2: Weeks */
+    .semanas-header th {
+        top: 40px; /* offset = height of row 1 */
+        height: 30px;
+        z-index: 30;
+        @apply bg-slate-100 text-slate-500 text-[9px] font-semibold;
+    }
+
+    /* --- Sticky COLUMNS (Left) --- */
+    /* Define widths and left positions explicitly */
+    .empleado-col, .empleado-row td:nth-child(1) {
+        position: sticky;
+        left: 0;
+        width: 220px;
+        min-width: 220px;
+        max-width: 220px;
+        z-index: 20;
+    }
+
+    .disponible-col, .empleado-row td:nth-child(2) {
+        position: sticky;
+        left: 220px;
+        width: 60px;
+        min-width: 60px;
+        z-index: 20;
+    }
+
+    .acumuladas-col, .empleado-row td:nth-child(3) {
+        position: sticky;
+        left: 280px; /* 220 + 60 */
+        width: 60px;
+        min-width: 60px;
+        z-index: 20;
+    }
+
+    .restan-col, .empleado-row td:nth-child(4) {
+        position: sticky;
+        left: 340px; /* 280 + 60 */
+        width: 60px;
+        min-width: 60px;
+        z-index: 20;
+        border-right: 2px solid #cbd5e1 !important; /* Separator line */
+    }
+
+    /* Body/Content Styling for Sticky Columns */
+    .empleado-row td:nth-child(1),
+    .empleado-row td:nth-child(2),
+    .empleado-row td:nth-child(3),
+    .empleado-row td:nth-child(4) {
+        @apply bg-white; /* Must have bg to cover scrolling content */
+    }
+
+    /* Department Header Sticky */
+    .departamento-header {
+        position: sticky !important;
+        left: 0;
+        z-index: 25;
+        @apply bg-blue-600 text-white font-bold text-xs uppercase tracking-wide px-4 py-2 shadow-sm;
+    }
+
+    /* --- INTERSECTION: The "Super Sticky" Corners --- */
+    /* Where Top Headers meet Left Columns -> Highest Z-Index */
+    
+    /* Top Left Corner Cells (Row 1) */
+    .meses-header .empleado-col,
+    .meses-header .disponible-col,
+    .meses-header .acumuladas-col,
+    .meses-header .restan-col {
+        top: 0;
+        z-index: 50 !important;
+        @apply bg-slate-900 text-white border-r border-slate-700;
+    }
+
+    /* Top Left Corner Cells (Row 2 is empty/spanned usually, but strictly speaking) */
+    /* Actually our headers span 2 rows, so the above covers it mostly, 
+       but if we had a second row of headers on the left, we'd need this. 
+       In this table structure, 'rowspan=2' is used. */
+
+
+    /* --- Specific Styling --- */
+    .empleado-nombre {
+        @apply text-xs text-gray-700 border-r border-gray-100 font-medium align-middle;
+    }
+
+    .kpi-cell {
+        @apply text-center text-xs font-medium align-middle;
+        height: 40px;
+    }
+
+    .semana-cell {
+        width: 32px;
+        min-width: 32px;
+        height: 40px;
+        padding: 0;
+        position: relative;
+    }
+    
+    .semana-cell:hover {
+        @apply bg-gray-50;
+    }
+
+    .vacacion-aprobada {
+        background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+    }
+    
+    .vacacion-pendiente {
+        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+    }
+
+    .departamento-header-row .depto-cell {
+        @apply bg-blue-50/50;
+    }
+</style>
+{% endblock %}

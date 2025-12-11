@@ -1,0 +1,322 @@
+{% extends 'gestion/base.html' %}
+{% load calendario_filters %}
+
+{% block title %}Calendario de Vacaciones{% endblock %}
+
+{% block content %}
+<div class="romper-contenedor">
+
+    <div class="contenido-interno">
+        <div class="row mb-4">
+            <tr class="meses-header">
+                <th class="empleado-col" rowspan="2">Empleado</th>
+                <th class="disponible-col" rowspan="2">Disponible</th>
+                <th class="acumuladas-col" rowspan="2">Acumuladas</th>
+                <th class="restan-col" rowspan="2">Restan</th>
+                {% for mes in meses_data %}
+                <th colspan="{{ mes.total_semanas }}" class="mes-header">{{ mes.nombre }}</th>
+                {% endfor %}
+            </tr>
+
+            <tr class="semanas-header">
+                {% for mes in meses_data %}
+                {% for semana in mes.semanas %}
+                <th class="semana-header" title="{{ semana.inicio|date:'d/m' }} - {{ semana.fin|date:'d/m' }}">
+                    {{ semana.rango }}
+                </th>
+                {% endfor %}
+                {% endfor %}
+            </tr>
+            </thead>
+
+            <tbody>
+                {% for depto_data in departamentos_data %}
+                <tr class="departamento-header-row">
+                    <td colspan="4" class="departamento-header">
+                        {% if depto_data.departamento %}
+                        {{ depto_data.departamento.nombre }}
+                        {% else %}
+                        Sin Departamento
+                        {% endif %}
+                    </td>
+                    {% for mes in meses_data %}
+                    {% for semana in mes.semanas %}
+                    <td class="depto-cell"></td>
+                    {% endfor %}
+                    {% endfor %}
+                </tr>
+
+                {% for emp_data in depto_data.empleados %}
+                <tr class="empleado-row">
+                    <td class="empleado-nombre">
+                        {{ emp_data.empleado.apellido }}, {{ emp_data.empleado.nombre }}
+                    </td>
+                    <td class="disponible">{{ emp_data.dias_disponibles }}</td>
+                    <td class="acumuladas">{{ emp_data.dias_acumulados }}</td>
+                    <td class="restan">{{ emp_data.dias_restantes }}</td>
+
+                    {% for mes in meses_data %}
+                    {% for semana in mes.semanas %}
+                    {% if semana.dias|semana_tiene_vacaciones:emp_data.vacaciones %}
+                    <td class="semana-cell vacacion" title="Vacaciones"></td>
+                    {% else %}
+                    <td class="semana-cell"></td>
+                    {% endif %}
+                    {% endfor %}
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+                {% empty %}
+                <tr>
+                    <td colspan="100" class="text-center py-4">No hay empleados registrados en este departamento
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* --- CSS PARA FORZAR ANCHO COMPLETO --- */
+    .romper-contenedor {
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        background-color: #f8f9fa;
+        padding-top: 20px;
+        padding-bottom: 20px;
+    }
+
+    .contenido-interno {
+        padding-left: 20px;
+        padding-right: 20px;
+        width: 100%;
+    }
+
+    /* Estilos de la tabla */
+    .calendario-wrapper {
+        overflow-x: auto;
+        overflow-y: auto;
+        max-height: calc(100vh - 200px);
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        width: 100%;
+        background: white;
+    }
+
+    .calendario-vacaciones {
+        table-layout: fixed;
+        width: 3000px;
+        /* Ancho fijo para forzar scroll horizontal */
+        border-collapse: collapse;
+        font-size: 11px;
+    }
+
+    .calendario-vacaciones th,
+    .calendario-vacaciones td {
+        border: 1px solid #ddd;
+        padding: 6px 4px;
+        text-align: center;
+    }
+
+    /* Hacer que el thead sea sticky verticalmente */
+    .calendario-vacaciones thead th {
+        position: sticky;
+        z-index: 10;
+    }
+
+    /* Primera fila (meses) pegada arriba */
+    .meses-header th {
+        top: 0;
+    }
+
+    /* Segunda fila (semanas) pegada debajo de la primera */
+    .semanas-header th {
+        top: 38px;
+    }
+
+    /* Colores y Sticky Headers */
+    .meses-header .mes-header {
+        background: #764ba2;
+        color: white;
+        font-weight: bold;
+        padding: 12px 4px;
+        text-transform: uppercase;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .empleado-col,
+    .disponible-col,
+    .acumuladas-col,
+    .restan-col {
+        background: #764ba2;
+        color: white;
+        width: 100px;
+        position: sticky;
+        left: 0;
+        z-index: 20;
+        font-weight: 600;
+        box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Las columnas fijas necesitan z-index más alto cuando están en el header */
+    .meses-header .empleado-col,
+    .meses-header .disponible-col,
+    .meses-header .acumuladas-col,
+    .meses-header .restan-col {
+        z-index: 30;
+    }
+
+
+    .disponible-col {
+        left: 100px;
+    }
+
+    .acumuladas-col {
+        left: 200px;
+    }
+
+    .restan-col {
+        left: 300px;
+    }
+
+    .semanas-header .semana-header {
+        background: #c2e9fb;
+        color: #2c3e50;
+        font-size: 10px;
+        width: 40px;
+        font-weight: 600;
+    }
+
+    .departamento-header-row {
+        background: #f5576c;
+        font-weight: bold;
+        color: white;
+    }
+
+    .departamento-header {
+        text-align: left;
+        padding-left: 15px;
+        background: #f5576c;
+        color: white;
+        position: sticky;
+        left: 0;
+        z-index: 15;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-size: 11px;
+    }
+
+    .depto-cell {
+        background: #f5576c;
+        width: 40px;
+    }
+
+    /* Sticky Columns (Empleado, Depto, Disponible, Acumuladas, Restan) */
+    .empleado-nombre {
+        text-align: left;
+        background: #fcb69f;
+        padding-left: 20px;
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        border-right: 2px solid #f5576c;
+        width: 100px;
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .disponible {
+        background: #fdcb6e;
+        font-weight: bold;
+        position: sticky;
+        left: 100px;
+        z-index: 10;
+        border-right: 2px solid #f39c12;
+        width: 100px;
+        color: #2c3e50;
+    }
+
+    .acumuladas {
+        background: #56ab2f;
+        font-weight: bold;
+        position: sticky;
+        left: 200px;
+        z-index: 10;
+        border-right: 2px solid #27ae60;
+        width: 100px;
+        color: white;
+    }
+
+    .restan {
+        background: #9b59b6;
+        font-weight: bold;
+        position: sticky;
+        left: 300px;
+        z-index: 10;
+        border-right: 3px solid #2c3e50;
+        width: 100px;
+        color: white;
+    }
+
+    .semana-cell {
+        width: 40px;
+        height: 28px;
+        background-color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid #e0e0e0;
+    }
+
+    .semana-cell.vacacion {
+        background: #38ef7d;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .empleado-row:hover .semana-cell {
+        background-color: #f5f6fa;
+        transform: scale(1.05);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .empleado-row:hover .semana-cell.vacacion {
+        background: linear-gradient(135deg, #0f7c6f 0%, #2ed573 100%);
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(17, 153, 142, 0.3);
+    }
+
+    /* Leyenda */
+    .leyenda {
+        padding: 15px;
+        background-color: #fff;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+    }
+
+    .leyenda-item {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .color-box {
+        width: 30px;
+        height: 20px;
+        border: 1px solid #ddd;
+        margin-right: 8px;
+    }
+
+    .color-box.vacacion {
+        background-color: #92D050;
+    }
+</style>
+{% endblock %}

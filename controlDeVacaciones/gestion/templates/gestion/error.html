@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error del Sistema</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilo para que el texto del error no rompa el diseño */
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl">
+        
+        <div class="flex items-center space-x-4 mb-6">
+            <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.3 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <h1 class="text-3xl font-extrabold text-red-600">
+                ¡Ocurrió un Error Inesperado!
+            </h1>
+        </div>
+
+        <p class="text-gray-700 mb-4">
+            Lamentamos el inconveniente. Se ha producido un problema al intentar procesar su solicitud.
+        </p>
+        
+        <p class="text-sm font-semibold text-gray-500 mb-2">
+            Detalles Técnicos:
+        </p>
+
+        <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+            {% if exception or error %}
+                <strong class="block text-red-800 mb-1">Tipo de Error:</strong>
+                <pre class="text-sm text-red-700 font-mono">{{ exception|default:error }}</pre>
+            {% else %}
+                <p class="text-sm text-red-700">
+                    No se proporcionaron detalles específicos del error.
+                </p>
+            {% endif %}
+        </div>
+        
+        <p class="mt-6 text-center text-gray-500 text-sm">
+            Intente recargar la página o contacte al administrador del sistema.
+        </p>
+        
+        <div class="mt-6 text-center">
+            <a href="/" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Volver a la Página Principal
+            </a>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Historial de Vacaciones</title>
+    <style>
+        body { background-color: #F8F9FA; font-family: Arial, sans-serif; color: #495057; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
+        h2 { color: #555; border-bottom: 2px solid #EEE; padding-bottom: 10px; }
+        .card { padding: 15px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #eee; }
+        .info-saldo { background-color: #E6F7F0; display: flex; justify-content: space-around; padding: 20px; }
+        .saldo-value { font-size: 1.5em; font-weight: bold; color: #007bff; }
+        .styled-table { width: 100%; border-collapse: collapse; font-size: 0.9em; margin-top: 15px; }
+        .styled-table th, .styled-table td { border: 1px solid #E9ECEF; padding: 10px; text-align: left; }
+        .styled-table th { background-color: #E6F0FF; color: #495057; }
+        .status-aprobado { background-color: #B8E994; padding: 5px; border-radius: 4px; text-align: center; }
+        .status-solicitado { background-color: #FFD5A8; padding: 5px; border-radius: 4px; text-align: center; }
+        .status-rechazado { background-color: #FFB3B3; padding: 5px; border-radius: 4px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h2>👤 Mi Historial de Vacaciones</h2>
+            <p>Resumen de tu saldo y estado de tus solicitudes.</p>
+        </header>
+        <h3>Saldo Detallado - Ciclo 2025 (Muestra)</h3>
+        <div class="card info-saldo">
+            <div><label>Días de Derecho:</label><div class="saldo-value">14</div></div>
+            <div><label>Días Arrastrados:</label><div class="saldo-value">+ 7</div></div>
+            <div><label>Días Aprobados/Tomados:</label><div class="saldo-value" style="color: #d9534f;">- 5</div></div>
+            <div><label>SALDO DISPONIBLE FINAL:</label><div class="saldo-value" style="color: #B8E994; font-size: 2em;">16</div></div>
+        </div>
+        <h3>Mis Solicitudes</h3>
+        <table class="styled-table">
+            <thead>
+                <tr><th>Inicio</th><th>Fin</th><th>Días</th><th>Estado</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>2026-03-10</td><td>2026-03-14</td><td>5</td><td><span class="status-aprobado">Aprobado</span></td></tr>
+                <tr><td>2026-06-02</td><td>2026-06-06</td><td>5</td><td><span class="status-solicitado">Solicitado</span></td></tr>
+                <tr><td>2025-12-15</td><td>2025-12-25</td><td>8</td><td><span class="status-rechazado">Rechazado</span></td></tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

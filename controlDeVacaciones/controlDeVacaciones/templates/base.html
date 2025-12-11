@@ -1,0 +1,65 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Carga de Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilo personalizado para el cuerpo */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilo para un contenedor de contenido centrado, similar al de Django Admin */
+        .admin-container {
+            max-width: 1200px;
+        }
+    </style>
+    <!-- Bloque para el título específico de la página -->
+    <title>{% block title %}Control de Vacaciones{% endblock %}</title>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+    <!-- Encabezado/Barra Superior -->
+    <header class="bg-blue-800 text-white p-4 shadow-lg sticky top-0 z-10">
+        <div class="admin-container mx-auto flex justify-between items-center">
+            <!-- Bloque 'titulo' que usa tu crear_empleado.html -->
+            <h1 class="text-2xl font-extrabold">{% block titulo %}Gestor de Vacaciones{% endblock %}</h1>
+            
+            {% if user.is_authenticated %}
+                <nav class="text-sm flex items-center space-x-4">
+                    <span class="text-blue-200">Bienvenido, {{ user.username }}</span>
+                    <!-- Asumiendo que 'logout' es una URL configurada -->
+                    <a href="{% url 'gestion:dashboard' %}" class="px-3 py-1 bg-blue-700 rounded-lg hover:bg-blue-600 transition duration-200">
+                        Menu
+                    </a>
+                </nav>
+            {% else %}
+                <!-- Si el usuario no está autenticado, podría haber un enlace de inicio de sesión -->
+                <nav class="text-sm">
+                    <a href="{% url 'login' %}" class="px-3 py-1 bg-blue-700 rounded-lg hover:bg-blue-600 transition duration-200">
+                        Acceder
+                    </a>
+                </nav>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow pt-4 pb-12">
+        <div class="admin-container mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Bloque 'content' donde se inserta el contenido de las plantillas hijas -->
+            {% block content %}
+            <!-- El contenido específico de la plantilla hija se renderiza aquí -->
+            {% endblock %}
+        </div>
+    </main>
+
+    <!-- Pie de Página (Footer) -->
+    <footer class="bg-white border-t border-gray-200 text-center p-4 text-gray-500 text-xs mt-auto">
+        © {% now "Y" %} Sistema de Gestión de RR.HH.
+    </footer>
+
+</body>
+</html>

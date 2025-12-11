@@ -1,0 +1,87 @@
+{% extends "gestion/base.html" %}
+
+{% block title %}Gestión de Saldos {{ anio_ciclo }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-900">Gestión de Saldos</h1>
+            <p class="text-gray-500 mt-1">Control de días de vacaciones por empleado (Ciclo {{ anio_ciclo }})</p>
+        </div>
+        <!-- Placeholder for future actions -->
+        <!-- <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+            <i class="fas fa-plus mr-2"></i> Nuevo Ciclo
+        </button> -->
+    </div>
+
+    <!-- Table Card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100 text-left">
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Empleado</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Días Base</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Adicionales</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Consumidos</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Disponibles</th>
+                        <!-- <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Acciones</th> -->
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for saldo in saldos %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <div class="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold mr-3">
+                                    {{ saldo.empleado.nombre|first }}{{ saldo.empleado.apellido|first }}
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-gray-900">{{ saldo.empleado.apellido }}, {{ saldo.empleado.nombre }}</div>
+                                    <div class="text-xs text-gray-500">{{ saldo.empleado.departamento.nombre|default:"Sin Departamento" }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                {{ saldo.dias_base_ciclo }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                +{{ saldo.dias_adicionales }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                -{{ saldo.dias_consumidos_total }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="text-sm font-bold {% if saldo.total_disponible > 0 %}text-green-600{% else %}text-red-600{% endif %}">
+                                {{ saldo.total_disponible }}
+                            </span>
+                        </td>
+                        <!-- <td class="px-6 py-4 text-right">
+                            <button class="text-gray-400 hover:text-blue-600 transition">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                        </td> -->
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-gray-500">
+                            No hay saldos registrados para el ciclo {{ anio_ciclo }}.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

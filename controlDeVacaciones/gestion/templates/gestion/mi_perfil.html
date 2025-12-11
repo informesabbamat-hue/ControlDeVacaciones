@@ -1,0 +1,90 @@
+{% extends "gestion/base.html" %}
+
+{% block title %}Mi Perfil{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Header de Perfil -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Mi Perfil</h1>
+        <p class="text-gray-500 mt-1">Administra tu información personal y verifica tus datos.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        <!-- Tarjeta Principal: INFO BASICA -->
+        <div class="md:col-span-1">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-center h-full">
+                <div class="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 mx-auto flex items-center justify-center text-3xl font-bold text-white mb-4 shadow-lg">
+                    {{ empleado.nombre|first|upper }}{{ empleado.apellido|first|upper }}
+                </div>
+                <h2 class="text-xl font-bold text-gray-900">{{ empleado.nombre }} {{ empleado.apellido }}</h2>
+                <p class="text-gray-500 text-sm mb-4">{{ empleado.cargo|default:"Sin Cargo Definido" }}</p>
+                
+                <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium 
+                    {% if empleado.es_manager %}bg-purple-100 text-purple-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                    {% if empleado.es_manager %}Manager{% else %}Empleado{% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Detalles -->
+        <div class="md:col-span-2">
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 h-full">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Información Personal</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-4">
+                    
+                    <!-- Username -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Usuario</label>
+                        <p class="text-gray-900 font-medium">{{ usuario.username }}</p>
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Email</label>
+                        <p class="text-gray-900 font-medium">{{ usuario.email|default:"No registrado" }}</p>
+                    </div>
+
+                    <!-- Departamento -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Departamento</label>
+                        <p class="text-gray-900 font-medium">{{ empleado.departamento.nombre|default:"Sin Departamento" }}</p>
+                    </div>
+
+                    <!-- Fecha Ingreso -->
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Fecha de Ingreso</label>
+                        <p class="text-gray-900 font-medium">{{ empleado.fecha_ingreso|date:"d/m/Y" }}</p>
+                    </div>
+
+                    <!-- Manager -->
+                    <div class="sm:col-span-2">
+                        <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Reporta a</label>
+                        <div class="flex items-center gap-2">
+                            {% if empleado.manager_aprobador %}
+                                <div class="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs font-bold text-gray-600">
+                                    {{ empleado.manager_aprobador.nombre|first }}{{ empleado.manager_aprobador.apellido|first }}
+                                </div>
+                                <span class="text-gray-900 font-medium">{{ empleado.manager_aprobador }}</span>
+                            {% else %}
+                                <span class="text-gray-400 italic">Sin manager asignado</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Footer / Acciones -->
+                <div class="mt-8 pt-4 border-t border-gray-100 flex justify-end">
+                    <a href="{% url 'gestion:dashboard' %}" class="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors">
+                        Volver al Dashboard &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

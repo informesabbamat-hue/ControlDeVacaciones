@@ -1,0 +1,364 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Gestión de Empleados - Control de Vacaciones{% endblock %}
+
+{% block page_title %}Gestión de Empleados{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+
+    <!-- Header Section -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-4xl font-extrabold text-gray-900 mb-2">
+                    <i class="fas fa-users text-blue-600 mr-3"></i>
+                    Gestión de Empleados
+                </h1>
+                <p class="text-lg text-gray-600">
+                    Administra el personal de la empresa
+                </p>
+            </div>
+            <button onclick="toggleNewEmployeeForm()"
+                class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 px-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3">
+                <i class="fas fa-user-plus text-xl"></i>
+                <span class="text-lg">Nuevo Empleado</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- New Employee Form (Hidden by default) -->
+    <div id="newEmployeeForm" class="hidden mb-8 animate-slide-in-down">
+        <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">
+                    <i class="fas fa-user-plus text-blue-600 mr-2"></i>
+                    Registrar Nuevo Empleado
+                </h2>
+                <button onclick="toggleNewEmployeeForm()" class="text-gray-400 hover:text-gray-600 transition">
+                    <i class="fas fa-times text-2xl"></i>
+                </button>
+            </div>
+
+            <form method="POST" action="{% url 'gestion:crear_empleado' %}" class="space-y-6">
+                {% csrf_token %}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Usuario del Sistema -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user mr-2"></i>
+                            Usuario del Sistema (Login)
+                        </label>
+                        <select name="usuario_id" required class="form-input">
+                            <option value="">Seleccione un usuario...</option>
+                            {% for usuario in usuarios_disponibles %}
+                            <option value="{{ usuario.id }}">{{ usuario.username }} - {{ usuario.first_name }} {{ usuario.last_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Legajo -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-id-card mr-2"></i>
+                            Legajo
+                        </label>
+                        <input type="text" name="legajo" required placeholder="Ej: 12345" class="form-input">
+                    </div>
+
+                    <!-- Nombre -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-signature mr-2"></i>
+                            Nombre
+                        </label>
+                        <input type="text" name="nombre" required placeholder="Ej: Juan" class="form-input">
+                    </div>
+
+                    <!-- Apellido -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-signature mr-2"></i>
+                            Apellido
+                        </label>
+                        <input type="text" name="apellido" required placeholder="Ej: Pérez" class="form-input">
+                    </div>
+
+                    <!-- DNI -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-id-card-alt mr-2"></i>
+                            DNI
+                        </label>
+                        <input type="text" name="dni" placeholder="Ej: 99999999" class="form-input">
+                    </div>
+
+                    <!-- Departamento -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-building mr-2"></i>
+                            Departamento
+                        </label>
+                        <select name="departamento_id" class="form-input">
+                            <option value="">Seleccione un departamento...</option>
+                            {% for depto in departamentos %}
+                            <option value="{{ depto.id }}">{{ depto.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Fecha de Ingreso -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-calendar mr-2"></i>
+                            Fecha de Ingreso
+                        </label>
+                        <input type="date" name="fecha_ingreso" required class="form-input">
+                    </div>
+
+                    <!-- Jornada Estándar -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-clock mr-2"></i>
+                            Jornada Estándar (Horas/día)
+                        </label>
+                        <input type="number" name="jornada_estandar" min="1" max="24" step="0.5" value="9" required class="form-input" placeholder="9">
+                        <p class="text-xs text-gray-500 mt-1">Horas de trabajo por día (default: 9 horas)</p>
+                    </div>
+
+                    <!-- Manager Aprobador -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-user-tie mr-2"></i>
+                            Manager Aprobador
+                        </label>
+                        <select name="manager_aprobador_id" class="form-input">
+                            <option value="">Sin manager asignado</option>
+                            {% for manager in managers_list %}
+                            <option value="{{ manager.id }}">{{ manager.apellido }}, {{ manager.nombre }} ({{ manager.legajo }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Es Manager Checkbox -->
+                <div class="form-group">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="checkbox" name="es_manager"
+                            class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                        <span class="font-semibold text-gray-700">
+                            <i class="fas fa-star text-yellow-500 mr-2"></i>
+                            ¿Es Manager?
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Configuración de Vacaciones (Opcional) -->
+                <div class="col-span-full mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div class="form-group mb-4">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="checkbox" id="configurar_vacaciones" class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                            <span class="font-semibold text-gray-700">
+                                <i class="fas fa-calendar-alt text-blue-600 mr-2"></i>
+                                Configurar días de vacaciones manualmente
+                            </span>
+                        </label>
+                        <p class="text-xs text-gray-600 mt-2 ml-8">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Por defecto, se calculan automáticamente según antigüedad (LCT). Marca esta opción solo si hay un acuerdo especial.
+                        </p>
+                    </div>
+
+                    <div id="vacaciones_fields" style="display: none;" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-calendar-check mr-2"></i>
+                                Días iniciales
+                            </label>
+                            <input type="number" name="dias_iniciales" min="0" max="50" placeholder="Ej: 21" class="form-input">
+                            <p class="text-xs text-gray-500 mt-1">Días de vacaciones base para el año actual</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-plus-circle mr-2"></i>
+                                Días adicionales
+                            </label>
+                            <input type="number" name="dias_adicionales" min="0" max="30" placeholder="Ej: 0" value="0" class="form-input">
+                            <p class="text-xs text-gray-500 mt-1">Días extra otorgados (opcional)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex items-center gap-4 pt-4">
+                    <button type="submit" class="btn btn-primary flex-1">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar Empleado
+                    </button>
+                    <button type="button" onclick="toggleNewEmployeeForm()" class="btn btn-outline flex-1">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search and Filter Bar -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+        <div class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                <div class="relative">
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar por Nombre o Legajo..."
+                        class="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+            </div>
+            <div class="w-full md:w-64">
+                <select id="departmentFilter"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="">Todos los Departamentos</option>
+                    {% for depto in departamentos %}
+                    <option value="{{ depto.nombre }}">{{ depto.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Count -->
+    <div class="mb-6">
+        <p class="text-lg text-gray-600">
+            Mostrando <span id="employeeCount" class="font-bold text-blue-600">{{ empleados|length }}</span> empleados
+        </p>
+    </div>
+
+    <!-- Employees Grid -->
+    <div id="employeesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {% for empleado in empleados %}
+        <div class="employee-card bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100"
+            data-nombre="{{ empleado.nombre }} {{ empleado.apellido }}" data-legajo="{{ empleado.legajo }}"
+            data-departamento="{{ empleado.departamento.nombre|default:'' }}">
+
+            <!-- Header with Avatar -->
+            <div class="flex items-start justify-between mb-4">
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                        {{ empleado.nombre|first }}{{ empleado.apellido|first }}
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-900">{{ empleado.nombre }} {{ empleado.apellido }}</h3>
+                        <p class="text-sm text-gray-500">Legajo: {{ empleado.legajo }}</p>
+                    </div>
+                </div>
+                {% if empleado.es_manager %}
+                <span class="badge badge-warning">
+                    <i class="fas fa-star mr-1"></i>
+                    Manager
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Employee Details -->
+            <div class="space-y-3 mb-4">
+                <div class="flex items-center gap-3 text-sm">
+                    <i class="fas fa-building text-purple-600 w-5"></i>
+                    <span class="text-gray-700">{{ empleado.departamento.nombre|default:"Sin departamento" }}</span>
+                </div>
+                <div class="flex items-center gap-3 text-sm">
+                    <i class="fas fa-calendar text-green-600 w-5"></i>
+                    <span class="text-gray-700">Ingreso: {{ empleado.fecha_ingreso|date:"d/m/Y" }}</span>
+                </div>
+                {% if empleado.dni %}
+                <div class="flex items-center gap-3 text-sm">
+                    <i class="fas fa-id-card text-blue-600 w-5"></i>
+                    <span class="text-gray-700">DNI: {{ empleado.dni }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-2 pt-4 border-t border-gray-100">
+                <a href="{% url 'gestion:editar_empleado' empleado.id %}"
+                    class="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold py-2 px-4 rounded-lg transition text-center">
+                    <i class="fas fa-edit mr-1"></i>
+                    Editar
+                </a>
+                <a href="{% url 'gestion:eliminar_empleado' empleado.id %}"
+                    class="flex-1 bg-red-50 hover:bg-red-100 text-red-700 font-semibold py-2 px-4 rounded-lg transition text-center">
+                    <i class="fas fa-trash mr-1"></i>
+                    Eliminar
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <i class="fas fa-users text-gray-300 text-6xl mb-4"></i>
+            <p class="text-xl text-gray-500">No hay empleados registrados</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+<!-- JavaScript for Search and Filter -->
+<script>
+    function toggleNewEmployeeForm() {
+        const form = document.getElementById('newEmployeeForm');
+        form.classList.toggle('hidden');
+        if (!form.classList.contains('hidden')) {
+            form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    // Search and Filter functionality
+    const searchInput = document.getElementById('searchInput');
+    const departmentFilter = document.getElementById('departmentFilter');
+    const employeeCards = document.querySelectorAll('.employee-card');
+    const employeeCount = document.getElementById('employeeCount');
+
+    function filterEmployees() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedDept = departmentFilter.value.toLowerCase();
+        let visibleCount = 0;
+
+        employeeCards.forEach(card => {
+            const nombre = card.dataset.nombre.toLowerCase();
+            const legajo = card.dataset.legajo.toLowerCase();
+            const departamento = card.dataset.departamento.toLowerCase();
+
+            const matchesSearch = nombre.includes(searchTerm) || legajo.includes(searchTerm);
+            const matchesDept = !selectedDept || departamento.includes(selectedDept);
+
+            if (matchesSearch && matchesDept) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        employeeCount.textContent = visibleCount;
+    }
+
+    searchInput.addEventListener('input', filterEmployees);
+    departmentFilter.addEventListener('change', filterEmployees);
+
+    // Toggle vacation configuration fields
+    const configurarVacaciones = document.getElementById('configurar_vacaciones');
+    const vacacionesFields = document.getElementById('vacaciones_fields');
+    
+    configurarVacaciones.addEventListener('change', function() {
+        if (this.checked) {
+            vacacionesFields.style.display = 'grid';
+        } else {
+            vacacionesFields.style.display = 'none';
+        }
+    });
+</script>
+
+{% endblock %}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Días Festivos</title>
+    <style>
+        body { background-color: #F8F9FA; font-family: Arial, sans-serif; color: #495057; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08); }
+        h2 { color: #555; border-bottom: 2px solid #EEE; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; font-weight: bold; margin-bottom: 8px; }
+        .input-field { width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 6px; box-sizing: border-box; }
+        .card { padding: 15px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #eee; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-primary { background-color: #B8E994; color: #333; }
+        .styled-table { width: 100%; border-collapse: collapse; font-size: 0.9em; margin-top: 15px; }
+        .styled-table th, .styled-table td { border: 1px solid #E9ECEF; padding: 10px; text-align: left; }
+        .styled-table th { background-color: #E6F0FF; color: #495057; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h2>🗓️ Gestión de Días Festivos</h2>
+            <p>Lista de días no laborables para cálculo de días hábiles.</p>
+        </header>
+
+        <div class="card">
+            <h3>Agregar Nuevo Festivo</h3>
+            <div style="display: flex; gap: 20px;">
+                <div class="form-group" style="flex: 1;"><label for="fecha">Fecha:</label><input type="date" id="fecha" class="input-field"></div>
+                <div class="form-group" style="flex: 2;"><label for="descripcion">Descripción:</label><input type="text" id="descripcion" class="input-field" placeholder="Ej: Feriado Nacional de Carnaval"></div>
+                <div class="form-group" style="align-self: flex-end;"><button class="btn btn-primary" style="padding: 12px 20px;">Guardar Festivo</button></div>
+            </div>
+        </div>
+
+        <h3>Festivos Registrados (2025)</h3>
+        <table class="styled-table">
+            <thead>
+                <tr><th>Fecha</th><th>Descripción</th><th>Acción</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>2025-01-01</td><td>Año Nuevo</td><td><a href="#">Eliminar</a></td></tr>
+                <tr><td>2025-03-03</td><td>Carnaval</td><td><a href="#">Eliminar</a></td></tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

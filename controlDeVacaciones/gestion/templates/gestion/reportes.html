@@ -1,0 +1,322 @@
+{% extends "gestion/base.html" %}
+
+{% block title %}Reporte Global de Vacaciones{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+    <!-- Page Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">Historial Global</h1>
+        <p class="text-gray-500 mt-1">Gestión y seguimiento de todas las solicitudes</p>
+    </div>
+
+    <!-- Messages -->
+    {% if messages %}
+    <div class="space-y-3">
+        {% for message in messages %}
+        <div class="p-4 rounded-xl flex items-center gap-3 shadow-sm border
+            {% if message.tags == 'success' %} bg-green-50 text-green-800 border-green-100
+            {% elif message.tags == 'error' %} bg-red-50 text-red-800 border-red-100
+            {% elif message.tags == 'warning' %} bg-yellow-50 text-yellow-800 border-yellow-100
+            {% else %} bg-blue-50 text-blue-800 border-blue-100{% endif %}">
+            
+            {% if message.tags == 'success' %} <i class="fas fa-check-circle text-lg"></i>
+            {% elif message.tags == 'error' %} <i class="fas fa-times-circle text-lg"></i>
+            {% elif message.tags == 'warning' %} <i class="fas fa-exclamation-triangle text-lg"></i>
+            {% else %} <i class="fas fa-info-circle text-lg"></i>{% endif %}
+            
+            <p class="font-medium">{{ message }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Resumen Cards -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
+            <i class="fas fa-chart-pie text-blue-600"></i>
+            Resumen de Aprobaciones ({{ contexto.current_year }})
+        </h2>
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {% for item in resumen_aprobado %}
+            <div class="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                            {{ item.empleado__nombre }} {{ item.empleado__apellido }}
+                        </p>
+                        <div class="flex items-end gap-2">
+                            <span class="text-3xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors">
+                                {{ item.dias_aprobados|floatformat:0 }}
+                            </span>
+                            <span class="text-xs text-gray-500 font-medium mb-1">días</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full py-8 text-center bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                <p class="text-gray-500 text-sm">No hay solicitudes aprobadas en este ciclo.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <h2 class="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <i class="fas fa-filter text-blue-600"></i>
+            Filtros
+        </h2>
+        <form method="GET" class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+            <div class="md:col-span-5 relative">
+                <label for="id_empleado" class="block text-xs font-medium text-gray-700 mb-1 ml-1 uppercase tracking-wide">Empleado</label>
+                <div class="relative">
+                    <select id="id_empleado" name="empleado" 
+                        class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block appearance-none">
+                        <option value="Todos" {% if not empleado_id_seleccionado or empleado_id_seleccionado == 'Todos' %}selected{% endif %}>
+                            Todos los Empleados
+                        </option>
+                        {% for emp in empleados_disponibles %}
+                        <option value="{{ emp.id }}" {% if empleado_id_seleccionado == emp.id|stringformat:"s" %}selected{% endif %}>
+                            {{ emp.apellido }}, {{ emp.nombre }} ({{ emp.legajo }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:col-span-4 relative">
+                <label for="id_estado" class="block text-xs font-medium text-gray-700 mb-1 ml-1 uppercase tracking-wide">Estado</label>
+                <div class="relative">
+                    <select id="id_estado" name="estado"
+                        class="w-full pl-4 pr-10 py-2.5 bg-gray-50 border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block appearance-none">
+                        <option value="Todos" {% if not estado_seleccionado or estado_seleccionado == 'Todos' %}selected{% endif %}>
+                            Todos los Estados
+                        </option>
+                        {% for value, label in estados_disponibles %}
+                        <option value="{{ value }}" {% if estado_seleccionado == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="md:col-span-3">
+                <button type="submit"
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-sm hover:shadow transition-all duration-200 flex items-center justify-center gap-2">
+                    <i class="fas fa-search text-sm"></i>
+                    Aplicar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tabla Detallada -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="p-6 border-b border-gray-100 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+                <i class="fas fa-list text-blue-600"></i>
+                Detalle de Solicitudes
+            </h2>
+            <span class="text-sm text-gray-500 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
+                {{ solicitudes|length }} registros encontrados
+            </span>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100 text-left">
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Empleado</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Período</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Días</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Estado</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider">Aprobador</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right">Solicitado</th>
+                        {% if request.user.is_authenticated and request.user.empleado.es_manager %}
+                        <th class="px-6 py-4 text-xs font-semibold text-gray-500 uppercase tracking-wider text-center">Acciones</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for registro in solicitudes %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center">
+                                <div class="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold mr-3">
+                                    {{ registro.empleado.nombre|first }}{{ registro.empleado.apellido|first }}
+                                </div>
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-900">{{ registro.empleado.apellido }}, {{ registro.empleado.nombre }}</p>
+                                    <p class="text-xs text-gray-500">{{ registro.empleado.departamento.nombre|default:"-" }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="text-sm text-gray-900 font-medium">{{ registro.fecha_inicio|date:"d M Y" }}</div>
+                            <div class="text-xs text-gray-500">al {{ registro.fecha_fin|date:"d M Y" }}</div>
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                {{ registro.dias_solicitados }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            {% with estado=registro.estado|lower %}
+                                {% if estado == 'aprobada' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                                        <i class="fas fa-check-circle mr-1.5 text-xs"></i> Aprobada
+                                    </span>
+                                {% elif estado == 'pendiente' %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                                        <i class="fas fa-clock mr-1.5 text-xs"></i> Pendiente
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                                        <i class="fas fa-times-circle mr-1.5 text-xs"></i> Rechazada
+                                    </span>
+                                {% endif %}
+                            {% endwith %}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if registro.manager_aprobador %}
+                                <div class="flex items-center gap-2">
+                                    <i class="fas fa-user-check text-gray-400 text-xs"></i>
+                                    <span class="text-sm text-gray-600">
+                                        {{ registro.manager_aprobador.nombre }} {{ registro.manager_aprobador.apellido }}
+                                    </span>
+                                </div>
+                            {% else %}
+                                <span class="text-xs text-gray-400 italic">Pendiente</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 text-right">
+                            <span class="text-sm text-gray-500">{{ registro.fecha_solicitud|date:"d/m/Y" }}</span>
+                        </td>
+                        {% if request.user.is_authenticated and request.user.empleado.es_manager %}
+                        <td class="px-6 py-4 text-center">
+                            <form method="POST" action="{% url 'gestion:aprobar_rechazar' solicitud_id=registro.id %}" class="inline-flex items-center justify-center gap-2">
+                                {% csrf_token %}
+                                
+                                {% if registro.estado == 'Pendiente' %}
+                                    <!-- Pendiente: Aceptar (Aprobar) y Rechazar (Borrar) -->
+                                    <button type="submit" name="accion" value="aprobar" title="Aceptar Solicitud"
+                                        class="p-2 text-white bg-green-500 hover:bg-green-600 rounded-lg shadow-sm transition-all transform hover:scale-105">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button type="submit" name="accion" value="rechazar" title="Rechazar Solicitud"
+                                        class="p-2 text-white bg-red-500 hover:bg-red-600 rounded-lg shadow-sm transition-all transform hover:scale-105">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                
+                                {% elif registro.estado == 'Aprobada' %}
+                                    <!-- Aprobada: Solo Cancelar (Devolver días) -->
+                                    <button type="submit" name="accion" value="cancelar" title="Cancelar y Devolver Días"
+                                        class="p-2 text-white bg-amber-500 hover:bg-amber-600 rounded-lg shadow-sm transition-all transform hover:scale-105">
+                                        <i class="fas fa-undo"></i>
+                                    </button>
+                                    
+                                {% else %}
+                                    <!-- Rechazada o Cancelada: Sin acciones -->
+                                    <span class="text-xs text-gray-400 italic">Finalizada</span>
+                                {% endif %}
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center justify-center">
+                                <div class="bg-gray-50 rounded-full p-4 mb-3">
+                                    <i class="fas fa-search text-gray-300 text-2xl"></i>
+                                </div>
+                                <h3 class="text-gray-900 font-medium">No se encontraron solicitudes</h3>
+                                <p class="text-gray-500 text-sm mt-1">Intenta ajustar los filtros de búsqueda</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+    </div>
+</div>
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Intercept action buttons
+        const actionButtons = document.querySelectorAll('button[type="submit"][name="accion"]');
+        
+        actionButtons.forEach(button => {
+            button.addEventListener('click', function(e) {
+                const action = this.value;
+                
+                // Only intercept 'rechazar' and 'cancelar'
+                if (action === 'rechazar' || action === 'cancelar') {
+                    e.preventDefault(); // Stop form submission
+                    
+                    const form = this.closest('form');
+                    const btnName = this.name;
+                    const btnValue = this.value;
+
+                    let title = '';
+                    let text = '';
+                    let icon = '';
+                    let confirmBtnColor = '';
+                    let confirmBtnText = '';
+
+                    if (action === 'rechazar') {
+                        title = '¿Rechazar solicitud?';
+                        text = 'Esta acción no se puede deshacer.';
+                        icon = 'warning';
+                        confirmBtnColor = '#ef4444'; // Red-500
+                        confirmBtnText = 'Sí, rechazar';
+                    } else if (action === 'cancelar') {
+                        title = '¿Cancelar vacaciones aprobadas?';
+                        text = 'Los días se devolverán al saldo del empleado.';
+                        icon = 'question';
+                        confirmBtnColor = '#f59e0b'; // Amber-500
+                        confirmBtnText = 'Sí, cancelar y devolver días';
+                    }
+
+                    Swal.fire({
+                        title: title,
+                        text: text,
+                        icon: icon,
+                        showCancelButton: true,
+                        confirmButtonColor: confirmBtnColor,
+                        cancelButtonColor: '#6b7280',
+                        confirmButtonText: confirmBtnText,
+                        cancelButtonText: 'No, mantener'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Resume form submission by creating a hidden input for the button
+                            const hiddenInput = document.createElement('input');
+                            hiddenInput.type = 'hidden';
+                            hiddenInput.name = btnName;
+                            hiddenInput.value = btnValue;
+                            form.appendChild(hiddenInput);
+                            form.submit();
+                        }
+                    });
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

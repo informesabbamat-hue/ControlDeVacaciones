@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planificación de Vacaciones {{ anio_ciclo }}</title>
+    <!-- Carga de Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilo base para la fuente */
+        body { font-family: 'Inter', sans-serif; }
+        
+        /* Contenedor del calendario para permitir el scroll horizontal */
+        .calendar-container {
+            overflow-x: auto;
+            max-width: 100vw;
+        }
+
+        /* Tabla principal, se asegura de que no haya colapso de bordes */
+        .calendar-table {
+            border-collapse: separate;
+            border-spacing: 0;
+            min-width: 100%; /* Asegura que ocupe todo el espacio disponible */
+        }
+        
+        /* Fija la columna de empleados para que no se mueva con el scroll */
+        .employee-col {
+            position: sticky;
+            left: 0;
+            z-index: 20; /* Mayor z-index para que cubra las celdas al hacer scroll */
+            background-color: white; 
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1); 
+            min-width: 250px; 
+            max-width: 250px;
+        }
+
+        /* Estilo para las celdas de planificación de días */
+        .plan-cell {
+            width: 55px; /* Ancho fijo para cada rango de días */
+            min-width: 55px;
+            max-width: 55px;
+            height: 40px;
+            padding: 0;
+        }
+        
+        /* Contenedor de rango de días para la rotación */
+        .rotated-text {
+            /* Transformación para rotar el texto */
+            transform: rotate(-45deg); 
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: flex-end; /* Alinear el texto hacia abajo */
+            justify-content: center;
+            padding-bottom: 5px; 
+            overflow: hidden; /* Evita que el texto rotado se desborde */
+        }
+
+        /* Asegura que las celdas fijas tengan el fondo correcto en la fila de meses */
+        .month-header-col {
+            position: sticky;
+            left: 0;
+            z-index: 30; /* Más alto para la esquina superior izquierda */
+            background-color: #1D4ED8; /* Color azul del encabezado */
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 p-4 sm:p-8">
+
+    <div class="max-w-full mx-auto">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-6">
+            Planificación de Vacaciones {{ anio_ciclo }}
+        </h1>
+
+        <div class="bg-white shadow-xl rounded-xl overflow-hidden border border-gray-200">
+            <div class="calendar-container">
+                <table class="calendar-table">
+                    
+                    <!-- ENCABEZADO SUPERIOR: Muestra los meses -->
+                    <thead>
+                        <tr class="bg-blue-600 text-white shadow-lg">
+                            <!-- Columna fija para información del empleado -->
+                            <th class="month-header-col p-3 text-left font-semibold rounded-tl-xl border-r border-blue-500">
+                                Empleado / Días
+                            </th>
+
+                            <!-- Iteración de Meses -->
+                            {% for mes, semanas in calendario_anual.items %}
+                                {% with rango_semanas=semanas|length %}
+                                    <th colspan="{{ rango_semanas }}" class="p-3 text-center border-r border-blue-500 font-extrabold text-lg tracking-wider">
+                                        {{ mes }}
+                                    </th>
+                                {% endwith %}
+                            {% endfor %}
+                        </tr>
+
+                        <!-- ENCABEZADO INFERIOR: Muestra los rangos de días (semanas) -->
+                        <tr class="bg-blue-100 text-gray-700 border-b border-gray-300 h-20">
+                            <!-- Celda vacía fija para la columna de empleado -->
+                            <th class="employee-col p-2 text-left bg-blue-100 border-r border-gray-300 shadow-md"></th>
+
+                            <!-- Iteración de Rangos de Días (Semanas) -->
+                            {% for mes, semanas in calendario_anual.items %}
+                                {% for semana in semanas %}
+                                    <th class="plan-cell text-xs font-medium border-r border-gray-300">
+                                        <!-- Referencia corregida a 'semana.rango' -->
+                                        <div class="rotated-text whitespace-nowrap">{{ semana.rango }}</div>
+                                    </th>
+                                {% endfor %}
+                            {% endfor %}
+                        </tr>
+                    </thead>
+
+                    <!-- CUERPO DE LA TABLA: Muestra a los empleados y la planificación -->
+                    <tbody>
+                        
+                        {% comment %} 
+                            Nota: Se asume que 'empleados_planificacion' es la lista de tus empleados,
+                            y que cada objeto de empleado tiene las claves 'apellido', 'nombre', 
+                            'dias_disponibles' y 'dias_restantes'.
+                        {% endcomment %}
+
+                        {% for empleado in empleados_planificacion %}
+                            <tr class="hover:bg-gray-100 transition-colors border-t border-gray-200">
+                                
+                                <!-- Columna fija de datos del empleado -->
+                                <td class="employee-col p-3 text-sm border-r border-gray-200 bg-white hover:bg-gray-100">
+                                    <div class="font-medium text-gray-900">{{ empleado.apellido }}, {{ empleado.nombre }}</div>
+                                    <div class="text-xs text-gray-500">
+                                        Disp: {{ empleado.dias_disponibles }} | Rest: <span class="font-semibold text-green-600">{{ empleado.dias_restantes }}</span>
+                                    </div>
+                                </td>
+
+                                <!-- Celdas de Planificación (Vacaciones) -->
+                                {% for mes, semanas in calendario_anual.items %}
+                                    {% for semana in semanas %}
+                                        <td class="plan-cell border-r border-gray-200 text-center cursor-pointer">
+                                            {% comment %} 
+                                                Aquí es donde iría tu lógica para pintar la celda.
+                                                La variable 'semana' contiene:
+                                                - 'semana.rango': El texto del rango de días (ej: 1/Ene al 7/Ene)
+                                                - 'semana.dias': Una lista de 7 objetos date (Lunes a Domingo)
+                                            {% endcomment %}
+                                            <div class="w-full h-full flex items-center justify-center text-xs text-gray-400 bg-white hover:bg-gray-200 transition-all duration-150">
+                                                &middot;
+                                            </div>
+                                        </td>
+                                    {% endfor %}
+                                {% endfor %}
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="99" class="text-center p-8 text-gray-500">
+                                    No hay empleados cargados para la planificación.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</body>
+</html>

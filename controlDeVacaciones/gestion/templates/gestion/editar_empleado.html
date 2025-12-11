@@ -1,0 +1,211 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Editar Empleado - Control de Vacaciones{% endblock %}
+
+{% block page_title %}Editar Empleado{% endblock %}
+
+{% block content %}
+
+<div class="max-w-4xl mx-auto">
+
+    <!-- Header -->
+    <div class="mb-8">
+        <div class="flex items-center gap-4 mb-4">
+            <a href="{% url 'gestion:gestion_empleados' %}" class="text-gray-600 hover:text-gray-900 transition">
+                <i class="fas fa-arrow-left text-2xl"></i>
+            </a>
+            <div>
+                <h1 class="text-4xl font-extrabold text-gray-900">
+                    <i class="fas fa-user-edit text-blue-600 mr-3"></i>
+                    Editar Empleado
+                </h1>
+                <p class="text-lg text-gray-600 mt-2">
+                    Modificar información de {{ empleado.nombre }} {{ empleado.apellido }}
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 border border-gray-200">
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Legajo -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-id-card mr-2"></i>
+                        Legajo
+                    </label>
+                    <input type="text" name="legajo" required value="{{ empleado.legajo }}" class="form-input">
+                </div>
+
+                <!-- DNI -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-id-card-alt mr-2"></i>
+                        DNI
+                    </label>
+                    <input type="text" name="dni" value="{{ empleado.dni }}" class="form-input">
+                </div>
+
+                <!-- Nombre -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-signature mr-2"></i>
+                        Nombre
+                    </label>
+                    <input type="text" name="nombre" required value="{{ empleado.nombre }}" class="form-input">
+                </div>
+
+                <!-- Apellido -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-signature mr-2"></i>
+                        Apellido
+                    </label>
+                    <input type="text" name="apellido" required value="{{ empleado.apellido }}" class="form-input">
+                </div>
+
+                <!-- Departamento -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-building mr-2"></i>
+                        Departamento
+                    </label>
+                    <select name="departamento_id" class="form-input">
+                        <option value="">Sin departamento</option>
+                        {% for depto in departamentos %}
+                        <option value="{{ depto.id }}" {% if empleado.departamento and empleado.departamento.id == depto.id %}selected{% endif %}>
+                            {{ depto.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Fecha de Ingreso -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-calendar mr-2"></i>
+                        Fecha de Ingreso
+                    </label>
+                    <input type="date" name="fecha_ingreso" required value="{{ empleado.fecha_ingreso|date:'Y-m-d' }}"
+                        class="form-input">
+                </div>
+
+                <!-- Jornada Estándar -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-clock mr-2"></i>
+                        Jornada Estándar (Horas/día)
+                    </label>
+                    <input type="number" name="jornada_estandar" min="1" max="24" step="0.5" value="{{ empleado.jornada_estandar }}" required class="form-input">
+                    <p class="text-xs text-gray-500 mt-1">Horas de trabajo por día</p>
+                </div>
+
+                <!-- Manager Aprobador -->
+                <div class="form-group md:col-span-2">
+                    <label class="form-label">
+                        <i class="fas fa-user-tie mr-2"></i>
+                        Manager Aprobador
+                    </label>
+                    <select name="manager_aprobador_id" class="form-input">
+                        <option value="">Sin manager asignado</option>
+                        {% for manager in managers_list %}
+                        <option value="{{ manager.id }}" {% if empleado.manager_aprobador and empleado.manager_aprobador.id == manager.id %}selected{% endif %}>{{ manager.apellido }}, {{ manager.nombre }} ({{ manager.legajo }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Es Manager Checkbox -->
+            <div class="form-group">
+                <label class="flex items-center gap-3 cursor-pointer">
+                    <input type="checkbox" name="es_manager" {% if empleado.es_manager %}checked{% endif %}
+                        class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500">
+                    <span class="font-semibold text-gray-700">
+                        <i class="fas fa-star text-yellow-500 mr-2"></i>
+                        ¿Es Manager?
+                    </span>
+                </label>
+            </div>
+
+            <!-- User Info (Read-only) -->
+            <div class="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <p class="text-sm text-gray-600">
+                    <i class="fas fa-user mr-2"></i>
+                    <strong>Usuario del sistema:</strong> {{ empleado.user.username }}
+                    <span class="text-gray-500">(No se puede modificar)</span>
+                </p>
+            </div>
+
+            <!-- Password Change Section (Hidden by default, shown via JS if Manager) -->
+            <div id="password-section" class="bg-yellow-50 border border-yellow-200 rounded-lg p-6 hidden">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-key text-yellow-600 mr-2"></i> 
+                    Cambiar Contraseña de Acceso
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="form-group mb-0">
+                        <label class="form-label">Nueva Contraseña</label>
+                        <input type="password" name="new_password" id="new_password" class="form-input" placeholder="Dejar vacía para no cambiar">
+                    </div>
+                    <div class="form-group mb-0">
+                        <label class="form-label">Confirmar Contraseña</label>
+                        <input type="password" name="confirm_password" id="confirm_password" class="form-input" placeholder="Repetir contraseña">
+                    </div>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">
+                    * Solo visible para empleados con rol de Manager.
+                </p>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex items-center gap-4 pt-4 border-t border-gray-200">
+                <button type="submit" class="btn btn-primary flex-1">
+                    <i class="fas fa-save mr-2"></i>
+                    Guardar Cambios
+                </button>
+                <a href="{% url 'gestion:gestion_empleados' %}" class="btn btn-outline flex-1 text-center">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const isManagerCheckbox = document.querySelector('input[name="es_manager"]');
+        const passwordSection = document.getElementById('password-section');
+        const passwordInputs = passwordSection.querySelectorAll('input');
+
+        function togglePasswordSection() {
+            if (isManagerCheckbox.checked) {
+                passwordSection.classList.remove('hidden');
+                passwordInputs.forEach(input => input.disabled = false);
+            } else {
+                passwordSection.classList.add('hidden');
+                passwordInputs.forEach(input => {
+                    input.disabled = true;
+                    input.value = ''; // Clear value when hiding
+                });
+            }
+        }
+
+        // Initial check
+        togglePasswordSection();
+
+        // Listen for changes
+        isManagerCheckbox.addEventListener('change', togglePasswordSection);
+    });
+</script>
+{% endblock %}

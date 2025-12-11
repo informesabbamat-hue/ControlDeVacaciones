@@ -1,0 +1,394 @@
+{% extends 'gestion/base.html' %}
+
+{% block title %}Dashboard - Control de Vacaciones{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+
+<div class="max-w-7xl mx-auto">
+
+    {% if es_manager_dashboard %}
+    {# ============================================ #}
+    {# DASHBOARD DE MANAGER - KPIs del Equipo #}
+    {# ============================================ #}
+
+    <!-- Welcome Section -->
+    <div class="mb-10">
+        <h1 class="text-5xl font-extrabold text-gray-900 dark:text-white mb-4">
+            ¡Bienvenido, {{ empleado.nombre }}! 👋
+        </h1>
+        <p class="text-xl text-gray-600 dark:text-gray-300">
+            Panel de gestión del equipo - Resumen general
+        </p>
+    </div>
+
+    <!-- Team KPI Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+
+        <!-- Total Empleados -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border-l-4 border-blue-500 hover:shadow-xl transition-shadow relative group"
+             data-tooltip="Total de personal activo">
+            <div class="flex items-center justify-between mb-6">
+                <div class="w-16 h-16 rounded-2xl bg-blue-500 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-users text-white text-3xl"></i>
+                </div>
+            </div>
+            <div class="text-5xl font-black text-gray-900 dark:text-white mb-3">{{ total_empleados }}</div>
+            <div class="text-base font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Empleados Totales</div>
+            <div class="text-sm text-gray-500 dark:text-gray-500 mt-3">En el sistema</div>
+        </div>
+
+        <!-- Solicitudes Pendientes -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border-l-4 border-orange-500 hover:shadow-xl transition-shadow relative group"
+             data-tooltip="Vacaciones por aprobar">
+            <div class="flex items-center justify-between mb-6">
+                <div class="w-16 h-16 rounded-2xl bg-orange-500 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-clock text-white text-3xl"></i>
+                </div>
+            </div>
+            <div class="text-5xl font-black text-gray-900 dark:text-white mb-3">{{ solicitudes_pendientes }}</div>
+            <div class="text-base font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Solicitudes Pendientes</div>
+            <div class="text-sm text-gray-500 dark:text-gray-500 mt-3">Requieren aprobación</div>
+        </div>
+
+        <!-- Días Disponibles del Equipo -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border-l-4 border-green-500 hover:shadow-xl transition-shadow relative group"
+             data-tooltip="Suma total de saldos del equipo">
+            <div class="flex items-center justify-between mb-6">
+                <div class="w-16 h-16 rounded-2xl bg-green-500 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-calendar-check text-white text-3xl"></i>
+                </div>
+            </div>
+            <div class="text-5xl font-black text-gray-900 dark:text-white mb-3">{{ total_dias_equipo }}</div>
+            <div class="text-base font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Días del Equipo</div>
+            <div class="text-sm text-gray-500 dark:text-gray-500 mt-3">Total disponibles</div>
+        </div>
+
+        <!-- Tus Días Personales -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 border-l-4 border-purple-500 hover:shadow-xl transition-shadow relative group"
+             data-tooltip="Tu saldo personal asignado">
+            <div class="flex items-center justify-between mb-6">
+                <div class="w-16 h-16 rounded-2xl bg-purple-500 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-user-check text-white text-3xl"></i>
+                </div>
+            </div>
+            <div class="text-5xl font-black text-gray-900 dark:text-white mb-3">{{ saldo_disponible_personal }}</div>
+            <div class="text-base font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">Tus Días</div>
+            <div class="text-sm text-gray-500 dark:text-gray-500 mt-3">Disponibles personalmente</div>
+        </div>
+
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+
+        <!-- Vacaciones Próximas -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-xl bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                    <i class="fas fa-calendar-days text-purple-600 dark:text-purple-400 text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Vacaciones Próximas</h3>
+            </div>
+
+            {% if vacaciones_proximas %}
+            <div class="space-y-4">
+                {% for vacacion in vacaciones_proximas %}
+                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-white font-bold">
+                            {{ vacacion.empleado.nombre|first }}{{ vacacion.empleado.apellido|first }}
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">{{ vacacion.empleado.nombre }} {{ vacacion.empleado.apellido }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">{{ vacacion.fecha_inicio|date:"d/m/Y" }} - {{ vacacion.fecha_fin|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+                    <span class="text-sm font-bold text-purple-600 dark:text-purple-400">{{ vacacion.dias_solicitados }} días</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-gray-500 dark:text-gray-400 text-center py-8">No hay vacaciones programadas en los próximos 30 días</p>
+            {% endif %}
+        </div>
+
+        <!-- Solicitudes Recientes -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 border border-gray-100 dark:border-gray-700">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-xl bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                    <i class="fas fa-list-check text-orange-600 dark:text-orange-400 text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Solicitudes Pendientes</h3>
+            </div>
+
+            {% if ultimas_solicitudes %}
+            <div class="space-y-4">
+                {% for solicitud in ultimas_solicitudes %}
+                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-red-400 flex items-center justify-center text-white font-bold">
+                            {{ solicitud.empleado.nombre|first }}{{ solicitud.empleado.apellido|first }}
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-900 dark:text-white">{{ solicitud.empleado.nombre }} {{ solicitud.empleado.apellido }}</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-300">{{ solicitud.fecha_inicio|date:"d/m/Y" }} - {{ solicitud.fecha_fin|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+                    <span class="inline-block bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 text-xs font-bold px-3 py-1 rounded-full">
+                        Pendiente
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="mt-6">
+                <a href="{% url 'gestion:historial_global' %}"
+                    class="block text-center bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg transition">
+                    Ver Todas las Solicitudes
+                </a>
+            </div>
+            {% else %}
+            <p class="text-gray-500 dark:text-gray-400 text-center py-8">No hay solicitudes pendientes</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="mb-12">
+        <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">Acciones Rápidas</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <a href="{% url 'gestion:solicitar_vacaciones' %}"
+                class="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-2xl p-8 transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:border-blue-300">
+                <div class="flex items-center gap-6">
+                    <div
+                        class="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <i class="fas fa-calendar-plus text-white text-3xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Nueva Solicitud</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Registrar vacaciones</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'gestion:calendario_global' %}"
+                class="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-2xl p-8 transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:border-purple-300">
+                <div class="flex items-center gap-6">
+                    <div
+                        class="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <i class="fas fa-calendar-days text-white text-3xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Calendario</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Planificación del equipo</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'gestion:gestion_empleados' %}"
+                class="group bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-2xl p-8 transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:border-green-300">
+                <div class="flex items-center gap-6">
+                    <div
+                        class="w-20 h-20 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <i class="fas fa-users text-white text-3xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Empleados</h3>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Administrar personal</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    {% else %}
+    {# ============================================ #}
+    {# DASHBOARD DE EMPLEADO - Datos Personales #}
+    {# ============================================ #}
+
+    <!-- Welcome Section -->
+    <div class="mb-10">
+        <h1 class="text-5xl font-extrabold text-gray-900 mb-4">
+            ¡Bienvenido, {{ empleado.nombre }}! 👋
+        </h1>
+        <p class="text-xl text-gray-600">
+            Resumen de tu información de vacaciones
+        </p>
+    </div>
+
+    <!-- KPI Cards - Simplified -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+
+        <!-- Días Disponibles -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 border-l-4 border-blue-500 hover:shadow-xl transition-shadow">
+            <div class="flex items-center justify-between mb-6">
+                <div class="w-16 h-16 rounded-2xl bg-blue-500 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-calendar-check text-white text-3xl"></i>
+                </div>
+            </div>
+            <div class="text-5xl font-black text-gray-900 mb-3">{{ saldo_disponible }}</div>
+            <div class="text-base font-semibold text-gray-600 uppercase tracking-wide">Días Disponibles</div>
+            <div class="text-sm text-gray-500 mt-3">Ciclo {% now "Y" %}</div>
+        </div>
+
+        <!-- Antigüedad -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 border-l-4 border-green-500 hover:shadow-xl transition-shadow">
+            <div class="flex items-center justify-between mb-6">
+                <div class="w-16 h-16 rounded-2xl bg-green-500 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-briefcase text-white text-3xl"></i>
+                </div>
+            </div>
+            <div class="text-5xl font-black text-gray-900 mb-3">
+                {% widthratio empleado.antiguedad_en_anos 1 1 %}
+            </div>
+            <div class="text-base font-semibold text-gray-600 uppercase tracking-wide">Años de Antigüedad</div>
+            <div class="text-sm text-gray-500 mt-3">Desde {{ empleado.fecha_ingreso|date:"d/m/Y" }}</div>
+        </div>
+
+        <!-- Departamento -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 border-l-4 border-purple-500 hover:shadow-xl transition-shadow">
+            <div class="flex items-center justify-between mb-6">
+                <div class="w-16 h-16 rounded-2xl bg-purple-500 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-building text-white text-3xl"></i>
+                </div>
+            </div>
+            <div class="text-3xl font-black text-gray-900 mb-3 truncate">
+                {{ empleado.departamento.nombre|default:"Sin asignar" }}
+            </div>
+            <div class="text-base font-semibold text-gray-600 uppercase tracking-wide">Departamento</div>
+            <div class="text-sm text-gray-500 mt-3">Legajo: {{ empleado.legajo }}</div>
+        </div>
+
+        <!-- Estado -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 border-l-4 border-orange-500 hover:shadow-xl transition-shadow">
+            <div class="flex items-center justify-between mb-6">
+                <div class="w-16 h-16 rounded-2xl bg-orange-500 flex items-center justify-center shadow-lg">
+                    <i class="fas fa-user-check text-white text-3xl"></i>
+                </div>
+            </div>
+            <div class="mb-4">
+                <span class="inline-block bg-green-100 text-green-800 text-xl font-bold px-6 py-3 rounded-full">
+                    Activo
+                </span>
+            </div>
+            <div class="text-base font-semibold text-gray-600 uppercase tracking-wide">Estado</div>
+            <div class="text-sm text-gray-500 mt-3">
+                <i class="fas fa-user"></i> Empleado
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="mb-12">
+        <h2 class="text-3xl font-bold text-gray-900 mb-8">Acciones Rápidas</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <a href="{% url 'gestion:historial_personal' %}"
+                class="group bg-white rounded-xl shadow-md hover:shadow-2xl p-8 transition-all duration-300 border border-gray-100 hover:border-blue-300">
+                <div class="flex items-center gap-6">
+                    <div
+                        class="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <i class="fas fa-clock-rotate-left text-white text-3xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Mi Historial</h3>
+                        <p class="text-sm text-gray-600">Solicitudes anteriores</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'gestion:dias_disponibles' %}"
+                class="group bg-white rounded-xl shadow-md hover:shadow-2xl p-8 transition-all duration-300 border border-gray-100 hover:border-green-300">
+                <div class="flex items-center gap-6">
+                    <div
+                        class="w-20 h-20 rounded-2xl bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <i class="fas fa-calendar-check text-white text-3xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Días Disponibles</h3>
+                        <p class="text-sm text-gray-600">Consultar saldo</p>
+                    </div>
+                </div>
+            </a>
+
+            <a href="{% url 'gestion:calendario_global' %}"
+                class="group bg-white rounded-xl shadow-md hover:shadow-2xl p-8 transition-all duration-300 border border-gray-100 hover:border-purple-300">
+                <div class="flex items-center gap-6">
+                    <div
+                        class="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                        <i class="fas fa-calendar-days text-white text-3xl"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2">Calendario</h3>
+                        <p class="text-sm text-gray-600">Ver ausencias</p>
+                    </div>
+                </div>
+            </a>
+
+        </div>
+    </div>
+
+    <!-- Information Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        <!-- System Info -->
+        <div class="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center">
+                    <i class="fas fa-info-circle text-blue-600 text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Información del Sistema</h3>
+            </div>
+            <div class="space-y-5">
+                <div class="flex justify-between items-center py-4 border-b border-gray-200">
+                    <span class="text-base font-semibold text-gray-700">Período de Goce</span>
+                    <span class="text-base font-bold text-gray-900">01/Oct - 30/Abr</span>
+                </div>
+                <div class="flex justify-between items-center py-4 border-b border-gray-200">
+                    <span class="text-base font-semibold text-gray-700">Ciclo Actual</span>
+                    <span class="text-base font-bold text-gray-900">{% now "Y" %}</span>
+                </div>
+                <div class="flex justify-between items-center py-4">
+                    <span class="text-base font-semibold text-gray-700">Cálculo de Días</span>
+                    <span class="text-base font-bold text-gray-900">LCT Argentina</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center">
+                    <i class="fas fa-link text-purple-600 text-2xl"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Enlaces Útiles</h3>
+            </div>
+            <div class="space-y-3">
+                <a href="{% url 'gestion:mi_perfil' %}"
+                    class="flex items-center gap-4 p-5 rounded-xl hover:bg-gray-50 transition-all border border-transparent hover:border-gray-200">
+                    <i class="fas fa-user-circle text-gray-400 text-2xl"></i>
+                    <span class="text-base font-semibold text-gray-700">Mi Perfil</span>
+                </a>
+                <a href="{% url 'logout' %}"
+                    class="flex items-center gap-4 p-5 rounded-xl hover:bg-red-50 transition-all border border-transparent hover:border-red-200">
+                    <i class="fas fa-right-from-bracket text-red-400 text-2xl"></i>
+                    <span class="text-base font-semibold text-red-700">Cerrar Sesión</span>
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

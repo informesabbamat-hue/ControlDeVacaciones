@@ -1,0 +1,94 @@
+/* Additional fixes for layout issues */
+
+/* Ensure body doesn't have overflow issues */
+body {
+    overflow-x: hidden;
+}
+
+/* Main content area with sidebar */
+.main-content-with-sidebar {
+    margin-left: 260px;
+    min-height: 100vh;
+}
+
+/* Fix for stat cards to ensure proper spacing */
+.stat-card {
+    min-height: 140px;
+}
+
+/* Ensure cards don't break layout */
+.card {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* Fix navbar to not overlap */
+.navbar {
+    position: relative;
+    z-index: 999;
+}
+
+/* Responsive fixes */
+@media (max-width: 1024px) {
+    .main-content-with-sidebar {
+        margin-left: 0 !important;
+    }
+
+    .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+    }
+}
+
+/* Fix grid gaps on mobile */
+@media (max-width: 768px) {
+    .grid {
+        gap: 1rem;
+    }
+}
+
+/* =========================================
+   GLOBAL LOADER
+   ========================================= */
+#global-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background-color: rgba(255, 255, 255, 0.8);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px);
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Dark mode loader background */
+.dark #global-loader {
+    background-color: rgba(17, 24, 39, 0.85); /* Keep generic or use var if alpha supported */
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--border-default);
+    border-left-color: var(--color-primary-600);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Helper to hide loader */
+.loader-hidden {
+    opacity: 0;
+    visibility: hidden;
+}

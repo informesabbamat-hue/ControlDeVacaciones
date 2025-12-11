@@ -1,0 +1,452 @@
+{% extends 'gestion/base.html' %}
+{% load static %}
+
+{% block title %}Solicitud de Vacaciones{% endblock %}
+
+{% block extra_css %}
+<style>
+  .kpi-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 18px 22px;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+    border: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .icon-pill {
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+
+  .input-wrapper {
+    position: relative;
+  }
+
+  .input-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  .input-base {
+    width: 100%;
+    padding: 10px 12px 10px 38px;
+    border-radius: 12px;
+    border: 1px solid #cbd5e1;
+    background: #f9fafb;
+    transition: 0.18s;
+    font-size: 14px;
+  }
+
+  .input-base:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px #bfdbfe;
+    outline: none;
+    background: #ffffff;
+  }
+
+  select.input-base {
+    height: 48px !important;
+  }
+
+  .main-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 26px 26px 20px 26px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    border: 1px solid #e5e7eb;
+  }
+
+  .message {
+    border-radius: 10px;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+  }
+
+  .message.success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+  }
+
+  .message.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
+
+  .message.warning {
+    background: #fef9c3;
+    color: #854d0e;
+    border: 1px solid #fde68a;
+  }
+
+  .message.info {
+    background: #e0f2fe;
+    color: #075985;
+    border: 1px solid #bae6fd;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4">
+<div class="page-header">
+    <div class="page-header-content">
+        <div class="page-icon">
+            <i class="fas fa-calendar-plus"></i>
+        </div>
+        <div>
+            <h1 class="page-title">Solicitud de Vacaciones</h1>
+            <p class="page-subtitle">Registrar solicitud sin consumir saldo del empleado</p>
+        </div>
+    </div>
+</div>
+
+<!-- Selector de Año -->
+<div class="mb-4 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+        <label for="year-selector" class="text-sm font-semibold text-slate-700">
+            <i class="fas fa-calendar-alt mr-2"></i>
+            Ver KPIs del año:
+        </label>
+        <select id="year-selector" class="input-base" style="width: auto; min-width: 120px;">
+            <option value="2024">2024</option>
+            <option value="2025" selected>2025</option>
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+        </select>
+    </div>
+    <span id="year-info" class="text-xs text-gray-500">
+        <i class="fas fa-info-circle mr-1"></i>
+        Mostrando datos del ciclo <strong id="current-year-display">2025</strong>
+    </span>
+</div>
+
+<!-- KPIs SUPERIORES -->
+<section class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+
+  <!-- Saldo disponible -->
+  <div class="kpi-card border-l-4 border-green-500">
+    <div class="icon-pill" style="background: linear-gradient(135deg,#22c55e,#16a34a);">✓</div>
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Saldo Disponible</p>
+    <p class="text-2xl font-extrabold text-green-700 leading-tight">
+      {{ saldo_disponible|default:"N/A" }}
+    </p>
+    <p class="text-[11px] text-green-800/80 mt-1">Días aún utilizables</p>
+  </div>
+
+  <!-- Días Totales -->
+  <div class="kpi-card border-l-4 border-sky-500">
+    <div class="icon-pill" style="background: linear-gradient(135deg,#0ea5e9,#2563eb);">Σ</div>
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Días Totales</p>
+    <p class="text-2xl font-extrabold text-sky-700 leading-tight">
+      {{ dias_totales|default:"-" }}
+    </p>
+    <p class="text-[11px] text-sky-900/80 mt-1">Base LCT + adicionales</p>
+  </div>
+
+  <!-- Días Acumulados -->
+  <div class="kpi-card border-l-4 border-teal-500">
+    <div class="icon-pill" style="background: linear-gradient(135deg,#14b8a6,#0d9488);">+</div>
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Días Acumulados</p>
+    <p class="text-2xl font-extrabold text-gray-800 leading-tight">
+      {{ dias_acumulados|default:"0" }}
+    </p>
+    <p class="text-[11px] text-teal-900/80 mt-1">De años anteriores</p>
+  </div>
+
+  <!-- Días ya aprobados -->
+  <div class="kpi-card border-l-4 border-amber-500">
+    <div class="icon-pill" style="background: linear-gradient(135deg,#f59e0b,#f97316);">✔</div>
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Días Aprobados</p>
+    <p class="text-2xl font-extrabold text-amber-700 leading-tight">
+      {{ dias_usados|default:"0" }}
+    </p>
+    <p class="text-[11px] text-amber-900/80 mt-1">Confirmados este ciclo</p>
+  </div>
+
+  <!-- Días pendientes -->
+  <div class="kpi-card border-l-4 border-fuchsia-500">
+    <div class="icon-pill" style="background: linear-gradient(135deg,#e879f9,#a855f7);">⏳</div>
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Días Pendientes</p>
+    <p class="text-2xl font-extrabold text-fuchsia-700 leading-tight">
+      {{ dias_pendientes|default:"0" }}
+    </p>
+    <p class="text-[11px] text-fuchsia-900/80 mt-1">Sin resolución</p>
+  </div>
+
+</section>
+
+<!-- PERÍODO PERMITIDO / INFO -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  <div class="kpi-card border-l-4 border-indigo-500">
+    <div class="icon-pill" style="background: linear-gradient(135deg,#6366f1,#4f46e5);">🗓</div>
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Período para tomar vacaciones</p>
+    <p class="text-lg font-semibold text-slate-800">
+      {{ periodo_goce_inicio }} → {{ periodo_goce_fin }}
+    </p>
+    <p class="text-[11px] text-indigo-900/80 mt-1">
+      Las fechas seleccionadas deben estar dentro de este rango.
+    </p>
+  </div>
+
+  <div class="kpi-card border-l-4 border-blue-500">
+    <div class="icon-pill" style="background: linear-gradient(135deg,#0ea5e9,#1d4ed8);">ℹ</div>
+    <p class="text-xs font-medium text-gray-500 uppercase tracking-wide">Estado de Solicitud</p>
+    <p class="text-lg font-semibold text-blue-700">Pendiente</p>
+    <p class="text-[11px] text-blue-900/80 mt-1">
+      La solicitud se registra como PENDIENTE. El saldo se descuenta sólo al aprobar.
+    </p>
+  </div>
+</section>
+
+<!-- FORMULARIO PRINCIPAL -->
+<section class="main-card">
+
+  <!-- MENSAJES DJANGO -->
+  {% if messages %}
+  <div class="mb-4">
+    {% for message in messages %}
+    <div class="message {{ message.tags|default:'info' }}">
+      {{ message }}
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <form method="post" class="space-y-7">
+    {% csrf_token %}
+
+    <!-- EMPLEADO -->
+    <div class="space-y-1">
+      <label for="empleado_id" class="block text-sm font-semibold text-slate-700">Empleado</label>
+      <div class="input-wrapper">
+        <span class="input-icon">👤</span>
+        <select id="empleado_id" name="empleado_id" class="input-base pr-10" required>
+          <option value="">Seleccione un empleado...</option>
+          {% for emp in todos_empleados %}
+          <option value="{{ emp.id }}"
+            {% if empleado_seleccionado_id|default:'' == emp.id|stringformat:"s" %}selected{% endif %}>
+            {{ emp.apellido }}, {{ emp.nombre }} ({{ emp.legajo|default:"S/L" }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- FECHAS -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Inicio -->
+      <div class="space-y-1">
+        <label for="fecha_inicio" class="block text-sm font-semibold text-slate-700">Fecha de Inicio</label>
+        <div class="input-wrapper">
+          <span class="input-icon">📆</span>
+          <input type="date" id="fecha_inicio" name="fecha_inicio" class="input-base"
+            placeholder="dd/mm/aaaa" required>
+        </div>
+      </div>
+
+      <!-- Fin -->
+      <div class="space-y-1">
+        <label for="fecha_fin" class="block text-sm font-semibold text-slate-700">Fecha de Fin</label>
+        <div class="input-wrapper">
+          <span class="input-icon">📆</span>
+          <input type="date" id="fecha_fin" name="fecha_fin" class="input-base"
+            placeholder="dd/mm/aaaa" required>
+        </div>
+      </div>
+    </div>
+
+    <!-- PREVISOR DE DÍAS -->
+    <div id="preview-wrapper" class="hidden">
+      <div id="preview-box"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-blue-50 text-blue-800 border border-blue-200">
+      </div>
+    </div>
+
+    <!-- RAZÓN -->
+    <div class="space-y-1">
+      <label for="razon" class="block text-sm font-semibold text-slate-700">Razón (Opcional)</label>
+      <div class="input-wrapper">
+        <span class="input-icon">✏️</span>
+        <textarea id="razon" name="razon" rows="3"
+          class="input-base"
+          placeholder="Ej: Viaje familiar, descanso anual, compromisos personales..."></textarea>
+      </div>
+    </div>
+
+    <!-- BOTONES -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 pt-4 border-t border-slate-100 mt-4">
+      <a href="{% url 'gestion:dashboard' %}"
+        class="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition">
+        ← Volver
+      </a>
+
+      <button type="submit"
+        class="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg bg-blue-600 text-white text-sm font-semibold shadow-sm hover:bg-blue-700 transition">
+        ✔ Confirmar Solicitud
+      </button>
+    </div>
+
+  </form>
+</section>
+
+<!-- SCRIPT: PREVISUALIZADOR DE DÍAS Y AJAX PARA KPIS -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const empleadoSelect = document.getElementById("empleado_id");
+    const yearSelector = document.getElementById("year-selector");
+    const currentYearDisplay = document.getElementById("current-year-display");
+    const inicioInput = document.getElementById("fecha_inicio");
+    const finInput = document.getElementById("fecha_fin");
+    const previewWrapper = document.getElementById("preview-wrapper");
+    const previewBox = document.getElementById("preview-box");
+
+    // Función para actualizar KPIs
+    function actualizarKPIs() {
+      const empleadoId = empleadoSelect.value;
+      const year = yearSelector.value;
+      
+      // Actualizar display del año
+      currentYearDisplay.textContent = year;
+      
+      if (!empleadoId) {
+        // Resetear KPIs
+        document.querySelector('.kpi-card.border-green-500 .text-2xl').textContent = 'N/A';
+        document.querySelector('.kpi-card.border-sky-500 .text-2xl').textContent = '-';
+        document.querySelector('.kpi-card.border-teal-500 .text-2xl').textContent = '0';
+        document.querySelector('.kpi-card.border-amber-500 .text-2xl').textContent = '0';
+        document.querySelector('.kpi-card.border-fuchsia-500 .text-2xl').textContent = '0';
+        return;
+      }
+
+      // Mostrar indicador de carga
+      const kpiElements = [
+        document.querySelector('.kpi-card.border-green-500 .text-2xl'),
+        document.querySelector('.kpi-card.border-sky-500 .text-2xl'),
+        document.querySelector('.kpi-card.border-teal-500 .text-2xl'),
+        document.querySelector('.kpi-card.border-amber-500 .text-2xl'),
+        document.querySelector('.kpi-card.border-fuchsia-500 .text-2xl')
+      ];
+      
+      kpiElements.forEach(el => el.textContent = '...');
+
+      // Llamar al endpoint AJAX con año
+      const url = "{% url 'gestion:obtener_saldo_empleado' %}?empleado_id=" + empleadoId + "&year=" + year;
+      console.log('Llamando a:', url);
+      
+      fetch(url)
+        .then(response => {
+          console.log('Respuesta status:', response.status);
+          if (!response.ok) {
+            throw new Error('Error en la respuesta del servidor');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log('Datos recibidos:', data);
+          if (data.estado === 'ok') {
+            // Validar y parsear datos para evitar errores visuales (NaN/Undefined)
+            const safeFloat = (val) => {
+                const num = parseFloat(val);
+                return isNaN(num) ? 0 : num;
+            };
+
+            const saldoVal = data.saldo_disponible !== null ? data.saldo_disponible : 'N/A';
+            const totalesVal = data.dias_totales !== null ? data.dias_totales : '-';
+            const acumuladosVal = data.dias_acumulados !== undefined ? data.dias_acumulados : 0;
+            const usadosVal = data.dias_usados || 0;
+            const pendientesVal = data.dias_pendientes || 0;
+
+            // Actualizar KPIs
+            kpiElements[0].textContent = saldoVal;
+            kpiElements[1].textContent = totalesVal;
+            kpiElements[2].textContent = acumuladosVal;
+            kpiElements[3].textContent = usadosVal;
+            kpiElements[4].textContent = pendientesVal;
+            
+            // Actualizar subtítulo de Días Totales con el desglose
+            const diasTotalesNum = safeFloat(totalesVal === '-' ? 0 : totalesVal);
+            const diasAcumuladosNum = safeFloat(acumuladosVal);
+            const diasBaseNum = diasTotalesNum - diasAcumuladosNum;
+            
+            const subtitleTotales = document.querySelector('.kpi-card.border-sky-500 p:last-child');
+            if (subtitleTotales) {
+                 if (totalesVal !== '-') {
+                    subtitleTotales.innerHTML = `Antigüedad: <strong>${diasBaseNum}</strong> + Acumulados: <strong>${diasAcumuladosNum}</strong>`;
+                 } else {
+                    subtitleTotales.textContent = 'Base LCT + adicionales';
+                 }
+            }
+          } else {
+            console.error('Error en respuesta:', data.error);
+            kpiElements.forEach(el => el.textContent = 'Error');
+            alert('Error al obtener datos: ' + (data.error || 'Desconocido'));
+          }
+        })
+        .catch(error => {
+          console.error('Error al obtener saldo:', error);
+          kpiElements.forEach(el => el.textContent = 'Error');
+          alert('Error de conexión: ' + error.message);
+        });
+    }
+
+    // Actualizar KPIs cuando cambia el empleado
+    empleadoSelect.addEventListener("change", actualizarKPIs);
+    
+    // Actualizar KPIs cuando cambia el año
+    yearSelector.addEventListener("change", actualizarKPIs);
+
+    function actualizarPreview() {
+      const i = inicioInput.value;
+      const f = finInput.value;
+
+      if (!i || !f) {
+        previewWrapper.classList.add("hidden");
+        return;
+      }
+
+      const fi = new Date(i);
+      const ff = new Date(f);
+
+      if (ff < fi) {
+        previewWrapper.classList.remove("hidden");
+        previewBox.classList.remove("bg-blue-50", "text-blue-800", "border-blue-200");
+        previewBox.classList.add("bg-red-50", "text-red-800", "border-red-200");
+        previewBox.textContent = "⚠ La fecha de fin no puede ser anterior a la fecha de inicio.";
+        return;
+      }
+
+      // diferencia en días +1 para incluir ambos extremos
+      const diffMs = ff - fi;
+      const dias = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
+
+      previewWrapper.classList.remove("hidden");
+      previewBox.classList.remove("bg-red-50", "text-red-800", "border-red-200");
+      previewBox.classList.add("bg-blue-50", "text-blue-800", "border-blue-200");
+      previewBox.textContent = `Duración estimada: ${dias} día${dias > 1 ? 's' : ''} de ausencia.`;
+    }
+
+    inicioInput.addEventListener("change", actualizarPreview);
+    finInput.addEventListener("change", actualizarPreview);
+  });
+</script>
+
+</div><!-- End max-w-6xl container -->
+{% endblock %}
