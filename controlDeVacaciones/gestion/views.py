@@ -1592,17 +1592,18 @@ def exportar_calendario_excel(request):
         
         vac_fill = PatternFill(start_color="38ef7d", end_color="38ef7d", fill_type="solid")
         vac_pending_fill = PatternFill(start_color="ffd93d", end_color="ffd93d", fill_type="solid")
-        vac_font = Font(bold=True, color="FFFFFF")
+        vac_font = Font(bold=True, color="000000")
         
         center_align = Alignment(horizontal="center", vertical="center")
         left_align = Alignment(horizontal="left", vertical="center")
         
-        # Bordes azules medianos para mejor visibilidad
+        # Bordes negros medianos para mejor visibilidad
+        # Bordes finos negros (formato estándar de Excel)
         thin_border = Border(
-            left=Side(style='medium', color='4472C4'),
-            right=Side(style='medium', color='4472C4'),
-            top=Side(style='medium', color='4472C4'),
-            bottom=Side(style='medium', color='4472C4')
+            left=Side(style='thin', color='000000'),
+            right=Side(style='thin', color='000000'),
+            top=Side(style='thin', color='000000'),
+            bottom=Side(style='thin', color='000000')
         )
 
         # Generar estructura de meses y semanas
@@ -1747,19 +1748,26 @@ def exportar_calendario_excel(request):
                             cell.border = thin_border
                             cell.alignment = center_align
                             
-                            # Verificar si hay vacaciones en esta semana
+                            # Calcular días de vacaciones en esta semana y estado
+                            dias_en_semana = 0
                             estado_vacacion = None
-                            for vac in vacaciones:
-                                if vac.fecha_inicio <= semana['fin'] and vac.fecha_fin >= semana['inicio']:
-                                    estado_vacacion = vac.estado
-                                    break
+                            for dia in semana['dias']:
+                                for vac in vacaciones:
+                                    if vac.fecha_inicio <= dia <= vac.fecha_fin:
+                                        dias_en_semana += 1
+                                        # Priorizar estado APROBADO si hay mezcla
+                                        if not estado_vacacion or estado_vacacion == RegistroVacaciones.ESTADO_PENDIENTE:
+                                            estado_vacacion = vac.estado
+                                        break
                             
                             if estado_vacacion == RegistroVacaciones.ESTADO_APROBADA:
                                 cell.fill = vac_fill
                                 cell.font = vac_font
+                                cell.value = dias_en_semana
                             elif estado_vacacion == RegistroVacaciones.ESTADO_PENDIENTE:
                                 cell.fill = vac_pending_fill
                                 cell.font = vac_font
+                                cell.value = dias_en_semana
                             
                             current_col += 1
                     
@@ -1794,14 +1802,15 @@ def _generar_datos_anio(anio_ciclo):
     Función auxiliar para generar los datos del calendario de un año específico.
     """
     # 1. CALENDARIO ANUAL - Generar SEMANAS COMPLETAS del año (Lunes a Domingo)
-    # Encontrar el LUNES de la semana que contiene el 1 de enero
+    # Ajustamos para que la semana visual comience en LUNES.
     primer_dia = date(anio_ciclo, 1, 1)
     dia_semana = primer_dia.weekday()  # 0=Lunes, 6=Domingo
     
-    # Calcular días hasta el lunes anterior
+    # Calcular días hasta el Lunes anterior
+    # Si es lunes(0) -> 0, Si es martes(1) -> 1 ...
     dias_hasta_lunes = dia_semana
     
-    # Retroceder hasta el lunes (puede ser del año anterior)
+    # Retroceder hasta el lunes
     fecha_inicio = primer_dia - timedelta(days=dias_hasta_lunes)
     
     # Generar todas las semanas del año

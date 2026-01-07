@@ -56,4 +56,18 @@ def estado_vacacion_semana(dias_semana, vacaciones):
                     return 'pendiente'
     return None
 
-
+@register.filter
+def dias_vacacion_semana(dias_semana, vacaciones):
+    """
+    Cuenta cuántos días de la semana están cubiertos por vacaciones.
+    """
+    if not dias_semana:
+        return 0
+    
+    count = 0
+    for dia in dias_semana:
+        for vacacion in vacaciones:
+            if vacacion.fecha_inicio <= dia <= vacacion.fecha_fin:
+                count += 1
+                break
+    return count

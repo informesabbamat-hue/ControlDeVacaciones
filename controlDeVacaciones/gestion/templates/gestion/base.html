@@ -48,7 +48,121 @@
 
     <title>{% block title %}Control de Vacaciones - ABBAMAT{% endblock %}</title>
 
-    {% block extra_css %}{% endblock %}
+    {% block extra_css %}
+    <style>
+        /* ESTILOS DE EMERGENCIA - MAXIMA PRIORIDAD */
+        #toast-container {
+            position: fixed !important;
+            top: 30px !important;
+            right: 30px !important;
+            z-index: 9999999 !important;
+            width: 400px !important;
+            pointer-events: none !important;
+            display: block !important;
+        }
+
+        .abbamat-toast {
+            pointer-events: auto !important;
+            background: #ffffff !important;
+            color: #1e293b !important;
+            border-radius: 16px !important;
+            padding: 20px !important;
+            margin-bottom: 15px !important;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 10px 10px -5px rgba(0, 0, 0, 0.1) !important;
+            border-left: 8px solid #cbd5e1 !important;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 15px !important;
+            animation: abbamat-bounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+            position: relative !important;
+        }
+
+        .dark .abbamat-toast {
+            background: #1e293b !important;
+            color: #f8fafc !important;
+            border-left-color: #334155 !important;
+        }
+
+        @keyframes abbamat-bounce {
+            from { opacity: 0; transform: translateX(100px) scale(0.8); }
+            to { opacity: 1; transform: translateX(0) scale(1); }
+        }
+
+        .abbamat-toast-success { border-left-color: #10b981 !important; }
+        .abbamat-toast-error { border-left-color: #ef4444 !important; }
+        .abbamat-toast-warning { border-left-color: #f59e0b !important; }
+        .abbamat-toast-info { border-left-color: #3b82f6 !important; }
+
+        .abbamat-toast-icon {
+            font-size: 28px !important;
+            flex-shrink: 0 !important;
+            width: 40px !important;
+            height: 40px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .abbamat-toast-success .abbamat-toast-icon { color: #10b981 !important; }
+        .abbamat-toast-error .abbamat-toast-icon { color: #ef4444 !important; }
+        .abbamat-toast-warning .abbamat-toast-icon { color: #f59e0b !important; }
+        .abbamat-toast-info .abbamat-toast-icon { color: #3b82f6 !important; }
+
+        .abbamat-toast-content {
+            flex-grow: 1 !important;
+            text-align: left !important;
+        }
+
+        .abbamat-toast-title {
+            font-weight: 800 !important;
+            font-size: 1.1rem !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: block !important;
+            line-height: 1.2 !important;
+            color: inherit !important;
+        }
+
+        .abbamat-toast-message {
+            font-size: 0.95rem !important;
+            margin-top: 4px !important;
+            display: block !important;
+            opacity: 0.85 !important;
+            color: inherit !important;
+        }
+
+        .abbamat-toast-close {
+            background: #f1f5f9 !important;
+            color: #64748b !important;
+            border: none !important;
+            width: 26px !important;
+            height: 26px !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            cursor: pointer !important;
+            font-size: 12px !important;
+            flex-shrink: 0 !important;
+            transition: all 0.2s !important;
+        }
+        .dark .abbamat-toast-close { background: #334155 !important; color: #94a3b8 !important; }
+        .abbamat-toast-close:hover { background: #fee2e2 !important; color: #ef4444 !important; transform: rotate(90deg) !important; }
+
+        .abbamat-toast-progress {
+            position: absolute !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            height: 5px !important;
+            background: currentColor !important;
+            opacity: 0.3 !important;
+            animation: abbamat-p linear forwards !important;
+        }
+        @keyframes abbamat-p { from { width: 100%; } to { width: 0%; } }
+    </style>
+    {% endblock %}
 </head>
 
 <body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 transition-colors duration-300">
@@ -363,7 +477,7 @@
     {% endif %}
 
     <!-- Toast Notifications Container -->
-    <div id="toast-container" class="fixed top-24 right-6 z-[9999] space-y-3 max-w-sm"></div>
+    <div id="toast-container" class="fixed top-24 right-6 z-[9999] space-y-3"></div>
 
 
     <!-- Messages/Alerts (Convertidos a Toast) -->
@@ -376,7 +490,11 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.django-message').forEach(m => {
-                showToast(m.textContent, m.dataset.type);
+                const type = m.dataset.type || 'info';
+                const text = m.textContent.trim();
+                if (text) {
+                    showToast(text, type);
+                }
             });
         });
     </script>
@@ -488,7 +606,7 @@
             if (!container) return;
 
             const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
+            toast.className = `abbamat-toast abbamat-toast-${type}`;
             
             // Iconos según el tipo
             const icons = {
@@ -498,26 +616,28 @@
                 info: 'fa-info-circle'
             };
 
-            // Títulos según el tipo
-            const titles = {
-                success: 'Éxito',
-                error: 'Error',
-                warning: 'Advertencia',
-                info: 'Información'
+            // Títulos según el tipo si no se provee uno
+            const defaultTitles = {
+                success: '¡Logrado!',
+                error: 'Hubo un problema',
+                warning: 'Atención',
+                info: 'Aviso del sistema'
             };
 
+            const displayTitle = title || defaultTitles[type] || 'Notificación';
+
             toast.innerHTML = `
-                <div class="toast-icon">
+                <div class="abbamat-toast-icon">
                     <i class="fas ${icons[type] || icons.info}"></i>
                 </div>
-                <div class="toast-content">
-                    ${title ? `<div class="toast-title">${title}</div>` : ''}
-                    <div class="toast-message">${message}</div>
+                <div class="abbamat-toast-content">
+                    <div class="abbamat-toast-title">${displayTitle}</div>
+                    <div class="abbamat-toast-message">${message}</div>
                 </div>
-                <button class="toast-close" onclick="removeToast(this.parentElement)">
+                <button class="abbamat-toast-close" onclick="removeToast(this.parentElement)">
                     <i class="fas fa-times"></i>
                 </button>
-                <div class="toast-progress" style="animation-duration: ${duration}ms"></div>
+                <div class="abbamat-toast-progress" style="animation-duration: ${duration}ms"></div>
             `;
 
             container.appendChild(toast);
@@ -733,7 +853,7 @@
         // ==========================================
         // REAL-TIME NOTIFICATIONS POLLING
         // ==========================================
-        let lastNotifId = {{ notif_last_id|default:0 }};
+        let lastNotifId = parseInt("{{ notif_last_id|default:0 }}");
         const POLL_INTERVAL = 5000; // 5 segundos para una respuesta más rápida
 
         function checkNotificaciones() {

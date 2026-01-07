@@ -150,13 +150,17 @@
                                     {% with estado=semana.dias|estado_vacacion_semana:emp_data.vacaciones %}
                                         {% if estado == 'aprobada' %}
                                             <td class="semana-cell group/cell">
-                                                <div class="vac-block aprobada"></div>
-                                                <div class="tooltip">Aprobada</div>
+                                                <div class="vac-block aprobada flex items-center justify-center text-[12px] font-black text-white">
+                                                    {{ semana.dias|dias_vacacion_semana:emp_data.vacaciones }}
+                                                </div>
+                                                <div class="tooltip">Aprobada: {{ semana.dias|dias_vacacion_semana:emp_data.vacaciones }} días</div>
                                             </td>
                                         {% elif estado == 'pendiente' %}
                                             <td class="semana-cell group/cell">
-                                                <div class="vac-block pendiente"></div>
-                                                <div class="tooltip">Pendiente</div>
+                                                <div class="vac-block pendiente flex items-center justify-center text-[12px] font-black text-white">
+                                                    {{ semana.dias|dias_vacacion_semana:emp_data.vacaciones }}
+                                                </div>
+                                                <div class="tooltip">Pendiente: {{ semana.dias|dias_vacacion_semana:emp_data.vacaciones }} días</div>
                                             </td>
                                         {% else %}
                                             <td class="semana-cell hover:bg-slate-50 transition-colors"></td>
@@ -233,9 +237,9 @@
         transform: rotate(-90deg) translateX(-32px);
         transform-origin: left bottom;
         white-space: nowrap;
-        font-size: 9px;
+        font-size: 11px;
         font-weight: 700;
-        color: #64748b;
+        color: #475569;
         position: absolute;
         bottom: 8px;
         left: 50%;
